@@ -1,23 +1,22 @@
 import { useEffect, useState } from 'react';
-import LoadingScreen from '../screens/Loading/LoadingScreen';
+import LoadingScreen from '../screens/loading/LoadingScreen';
 import AuthNavigator from './AuthNavigator';
+import MainNavigator from './MainNavigator';
 
 export default function RootNavigator() {
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // giả lập loading (sau này thay bằng check token)
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000); // 2 giây
-
-    return () => clearTimeout(timer);
+    setTimeout(() => setLoading(false), 2000);
   }, []);
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  if (loading) return <LoadingScreen />;
 
-  // sau loading -> vào app
-  return <AuthNavigator />;
+  // 👇 QUYẾT ĐỊNH NAV Ở ĐÂY
+  return isLoggedIn ? (
+    <MainNavigator />
+  ) : (
+    <AuthNavigator setIsLoggedIn={setIsLoggedIn} />
+  );
 }
