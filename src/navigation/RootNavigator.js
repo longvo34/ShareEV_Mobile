@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import LoadingScreen from '../screens/loading/LoadingScreen';
-import AuthNavigator from './AuthNavigator';
-import MainNavigator from './MainNavigator';
+import { useEffect, useState } from "react";
+import LoadingScreen from "../screens/loading/LoadingScreen";
+import AuthNavigator from "./AuthNavigator";
+import MainNavigator from "./MainNavigator";
 
 export default function RootNavigator() {
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,6 @@ export default function RootNavigator() {
 
   if (loading) return <LoadingScreen />;
 
-  // 👇 QUYẾT ĐỊNH NAV Ở ĐÂY
   return isLoggedIn ? (
     <MainNavigator />
   ) : (
