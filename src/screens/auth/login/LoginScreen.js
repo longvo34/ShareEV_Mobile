@@ -3,7 +3,7 @@ import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import styles from "./LoginScreen.styles";
 
 export default function LoginScreen({ setIsLoggedIn }) {
-  const navigation = useNavigation(); 
+  const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
@@ -15,11 +15,7 @@ export default function LoginScreen({ setIsLoggedIn }) {
         style={styles.input}
       />
 
-      <TextInput
-        placeholder="Mật khẩu"
-        secureTextEntry
-        style={styles.input}
-      />
+      <TextInput placeholder="Mật khẩu" secureTextEntry style={styles.input} />
 
       <TouchableOpacity
         style={styles.loginButton}
@@ -33,7 +29,9 @@ export default function LoginScreen({ setIsLoggedIn }) {
           <Text style={styles.linkText}>Đăng ký</Text>
         </TouchableOpacity>
 
-        <Text style={styles.linkText}>Quên mật khẩu?</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+          <Text style={styles.linkText}>Quên mật khẩu?</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
