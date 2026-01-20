@@ -1,6 +1,11 @@
 import { FlatList, Image, Text, View } from "react-native";
 import styles from "./MyVehicleScreen.styles";
 
+const randomImageUrl = () =>
+  `https://source.unsplash.com/600x400/?car&sig=${Math.floor(
+    Math.random() * 1000,
+  )}`;
+
 const DATA = [
   {
     id: "1",
@@ -8,7 +13,7 @@ const DATA = [
     plate: "30A-123.45",
     status: "Sẵn sàng đăng bán",
     statusType: "ready",
-    image: require("../../../assets/images/vf7.png"),
+    image: randomImageUrl(),
   },
   {
     id: "2",
@@ -16,14 +21,15 @@ const DATA = [
     plate: "30A-123.45",
     status: "Đang sử dụng",
     statusType: "using",
-    image: require("../../../assets/images/vf7.png"),
+    image: randomImageUrl(),
   },
 ];
 
 export default function MyVehicleScreen() {
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Image source={item.image} style={styles.image} />
+      {/* 👇 Image dùng uri */}
+      <Image source={{ uri: item.image }} style={styles.image} />
 
       <View style={styles.info}>
         <Text style={styles.name}>{item.name}</Text>
