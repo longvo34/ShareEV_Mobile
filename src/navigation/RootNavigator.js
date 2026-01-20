@@ -14,7 +14,7 @@ export default function RootNavigator() {
   if (loading) return <LoadingScreen />;
 
   return isLoggedIn ? (
-    <MainNavigator />
+    <MainNavigator setIsLoggedIn={setIsLoggedIn} />
   ) : (
     <AuthNavigator setIsLoggedIn={setIsLoggedIn} />
   );
