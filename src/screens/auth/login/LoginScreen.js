@@ -1,12 +1,25 @@
 import { useNavigation } from "@react-navigation/native";
+import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import LoadingOverlay from "../../../components/common/LoadingOverlay";
 import styles from "./LoginScreen.styles";
 
 export default function LoginScreen({ setIsLoggedIn }) {
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = () => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setIsLoggedIn(true);
+    }, 1500);
+  };
 
   return (
     <View style={styles.container}>
+      <LoadingOverlay visible={loading} />
+
       <Text style={styles.title}>EVCoDrive</Text>
 
       <TextInput
@@ -19,7 +32,8 @@ export default function LoginScreen({ setIsLoggedIn }) {
 
       <TouchableOpacity
         style={styles.loginButton}
-        onPress={() => setIsLoggedIn(true)}
+        onPress={handleLogin}
+        disabled={loading}
       >
         <Text style={styles.loginText}>Đăng nhập</Text>
       </TouchableOpacity>
