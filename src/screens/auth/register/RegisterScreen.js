@@ -1,16 +1,73 @@
+import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import {
+  checkEmail,
+  register,
+  sendOtp,
+} from "../../../services/auth/auth.service";
 import styles from "./RegisterScreen.styles";
 
 export default function RegisterScreen({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!email || !password || !repeatPassword) {
+      Alert.alert("Lỗi", "Vui lòng nhập đầy đủ thông tin");
+      return;
+    }
+
+    if (password !== repeatPassword) {
+      Alert.alert("Lỗi", "Mật khẩu không khớp");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // 1️⃣ check email
+      await checkEmail(email);
+
+      // 2️⃣ register
+      await register({
+        email,
+        password,
+        repeatPassword,
+      });
+
+      // 3️⃣ send otp
+      await sendOtp({
+        email,
+        type: "REGISTER",
+      });
+
+      // 👉 sang màn nhập OTP
+      navigation.navigate("VerifyEmail", { email });
+    } catch (err) {
+      console.log("REGISTER ERROR:", err.response?.data || err.message);
+      Alert.alert(
+        "Lỗi",
+        err.response?.data?.message ||
+          err.response?.data?.error ||
+          "Đăng ký thất bại",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
@@ -27,24 +84,39 @@ export default function RegisterScreen({ navigation }) {
 
           <Text style={styles.title}>Đăng ký</Text>
 
-          <TextInput placeholder="Họ và tên" style={styles.input} />
-          <TextInput placeholder="Ngày sinh" style={styles.input} />
-          <TextInput placeholder="Giới tính" style={styles.input} />
-          <TextInput placeholder="Số CCCD" style={styles.input} />
-          <TextInput placeholder="Số điện thoại" style={styles.input} />
           <TextInput
-            placeholder="Mật khẩu"
-            secureTextEntry
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
             style={styles.input}
           />
+
           <TextInput
-            placeholder="Xác nhận mật khẩu"
+            placeholder="Mật khẩu"
+            value={password}
+            onChangeText={setPassword}
             secureTextEntry
             style={styles.input}
           />
 
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Tạo tài khoản</Text>
+          <TextInput
+            placeholder="Nhập lại mật khẩu"
+            value={repeatPassword}
+            onChangeText={setRepeatPassword}
+            secureTextEntry
+            style={styles.input}
+          />
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? "Đang xử lý..." : "Tạo tài khoản"}
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

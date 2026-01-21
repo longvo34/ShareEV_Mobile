@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import LoadingScreen from "../screens/loading/LoadingScreen";
+import { getAccessToken } from "../utils/authStorage";
 import AuthNavigator from "./AuthNavigator";
 import MainNavigator from "./MainNavigator";
 
@@ -8,7 +9,13 @@ export default function RootNavigator() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 2000);
+    const bootstrap = async () => {
+      const token = await getAccessToken();
+      setIsLoggedIn(!!token);
+      setLoading(false);
+    };
+
+    bootstrap();
   }, []);
 
   if (loading) return <LoadingScreen />;
