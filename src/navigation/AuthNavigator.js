@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ForgotPasswordScreen from "../screens/auth/forgotPassword/forgotPasswordScreen";
 import LoginScreen from "../screens/auth/login/LoginScreen";
 import RegisterScreen from "../screens/auth/register/RegisterScreen";
+import VerifyEmailScreen from "../screens/auth/register/VerifyEmailScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +19,8 @@ export default function AuthNavigator({ setIsLoggedIn }) {
         component={RegisterScreen}
         options={{ title: "Đăng ký" }}
       />
+
+      <Stack.Screen name="VerifyEmail" component={VerifyEmailScreen} />
 
       <Stack.Screen
         name="ForgotPassword"
