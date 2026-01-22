@@ -19,3 +19,7 @@ export const getRefreshToken = async () => {
 export const clearTokens = async () => {
   await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
 };
+
+export const changePassword = (data) => {
+  return api.post("/auth/change-password", data);
+};

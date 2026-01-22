@@ -1,6 +1,13 @@
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../../../constants/colors";
 import { logoutApi } from "../../../services/auth/auth.service";
@@ -48,59 +55,99 @@ export default function ProfileScreen({ setIsLoggedIn }) {
         </View>
 
         {/* Menu */}
-        <View style={styles.menu}>
-          <MenuItem
-            icon={<Ionicons name="car-outline" size={22} color={COLORS.text} />}
-            label="Xe của tôi"
-            onPress={() => navigation.navigate("Vehicle")}
-          />
+        <ScrollView
+          style={styles.menu}
+          contentContainerStyle={{ paddingBottom: 30 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.menu}>
+            <MenuItem
+              icon={
+                <Ionicons name="car-outline" size={22} color={COLORS.text} />
+              }
+              label="Xe của tôi"
+              onPress={() => navigation.navigate("Vehicle")}
+            />
 
-          <MenuItem
-            icon={
-              <MaterialIcons name="local-offer" size={22} color={COLORS.text} />
-            }
-            label="Xe đã niêm yết"
-          />
+            <MenuItem
+              icon={
+                <MaterialIcons
+                  name="local-offer"
+                  size={22}
+                  color={COLORS.text}
+                />
+              }
+              label="Xe đã niêm yết"
+            />
 
-          <MenuItem
-            icon={
-              <Ionicons name="receipt-outline" size={22} color={COLORS.text} />
-            }
-            label="Lịch sử giao dịch"
-            onPress={() => navigation.navigate("History")}
-          />
+            <MenuItem
+              icon={
+                <Ionicons
+                  name="receipt-outline"
+                  size={22}
+                  color={COLORS.text}
+                />
+              }
+              label="Lịch sử giao dịch"
+              onPress={() => navigation.navigate("History")}
+            />
 
-          <MenuItem
-            icon={
-              <Ionicons
-                name="add-circle-outline"
-                size={22}
-                color={COLORS.text}
-              />
-            }
-            label="Đăng ký xe"
-          />
+            <MenuItem
+              icon={
+                <Ionicons
+                  name="add-circle-outline"
+                  size={22}
+                  color={COLORS.text}
+                />
+              }
+              label="Đăng ký xe"
+            />
 
-          <MenuItem
-            icon={
-              <Ionicons name="settings-outline" size={22} color={COLORS.text} />
-            }
-            label="Cài đặt"
-          />
+            <MenuItem
+              icon={
+                <Ionicons
+                  name="settings-outline"
+                  size={22}
+                  color={COLORS.text}
+                />
+              }
+              label="Cài đặt"
+            />
 
-          <MenuItem
-            icon={
-              <Ionicons
-                name="log-out-outline"
-                size={22}
-                color={COLORS.primary}
-              />
-            }
-            label="Đăng xuất"
-            textStyle={{ color: COLORS.primary }}
-            onPress={handleLogout}
-          />
-        </View>
+            <MenuItem
+              icon={
+                <Ionicons name="key-outline" size={22} color={COLORS.text} />
+              }
+              label="Đổi mật khẩu"
+              onPress={() =>
+                Alert.alert(
+                  "Đổi mật khẩu",
+                  "Bạn có chắc chắn muốn đổi mật khẩu không?",
+                  [
+                    { text: "Hủy", style: "cancel" },
+                    {
+                      text: "Đồng ý",
+                      onPress: () => navigation.navigate("ChangePassword"),
+                    },
+                  ],
+                )
+              }
+            />
+
+            <MenuItem
+              icon={
+                <Ionicons
+                  name="log-out-outline"
+                  size={22}
+                  color={COLORS.primary}
+                />
+              }
+              label="Đăng xuất"
+              textStyle={{ color: COLORS.primary }}
+              onPress={handleLogout}
+            />
+          </View>
+        </ScrollView>
       </View>
     </SafeAreaView>
   );
