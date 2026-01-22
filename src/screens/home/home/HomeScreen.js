@@ -9,7 +9,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getProfile } from "../../../services/auth/profile.service";
+import { getMyProfile } from "../../../services/auth/auth.service";
 import styles from "./HomeScreen.styles";
 
 const CARS = [
@@ -44,7 +44,7 @@ export default function HomeScreen() {
 
     const fetchProfile = async () => {
       try {
-        const res = await getProfile();
+        const res = await getMyProfile();
 
         console.log("PROFILE RESPONSE:", res.data);
 

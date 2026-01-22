@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { verifyEmail } from "../../../services/auth/auth.service";
+import { resendOtp, verifyEmail } from "../../../services/auth/auth.service";
 
 export default function VerifyEmailScreen({ route, navigation }) {
   const { email } = route.params;

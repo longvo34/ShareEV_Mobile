@@ -66,12 +66,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // ❌ Không có response (mất mạng, server chết)
     if (!error.response) {
       return Promise.reject(error);
     }
 
-    // ✅ Token hết hạn → 401
     if (error.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
