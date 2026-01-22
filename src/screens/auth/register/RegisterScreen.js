@@ -12,8 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import {
   checkEmail,
-  register,
-  sendOtp,
+  register
 } from "../../../services/auth/auth.service";
 import styles from "./RegisterScreen.styles";
 
@@ -37,19 +36,12 @@ export default function RegisterScreen({ navigation }) {
     try {
       setLoading(true);
 
-      // 1️⃣ check email
       await checkEmail(email);
 
-      // 2️⃣ register
       await register({
         email,
         password,
         repeatPassword,
-      });
-
-      await sendOtp({
-        email,
-        type: "REGISTER",
       });
 
       navigation.navigate("VerifyEmail", { email });

@@ -4,8 +4,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import COLORS from "../constants/colors";
 import HistoryScreen from "../screens/home/history/HistoryScreen";
 import HomeScreen from "../screens/home/home/HomeScreen";
-import ProfileScreen from "../screens/home/profile/ProfileScreen";
 import MyVehicleScreen from "../screens/home/vehicle/MyVehicleScreen";
+import ProfileStack from "./ProfileStackNavigator";
 
 const Tab = createBottomTabNavigator();
 
@@ -38,7 +38,7 @@ export default function MainNavigator({ setIsLoggedIn }) {
       <Tab.Screen name="History" component={HistoryScreen} />
 
       <Tab.Screen name="Profile">
-        {(props) => <ProfileScreen {...props} setIsLoggedIn={setIsLoggedIn} />}
+        {(props) => <ProfileStack {...props} setIsLoggedIn={setIsLoggedIn} />}
       </Tab.Screen>
     </Tab.Navigator>
   );
