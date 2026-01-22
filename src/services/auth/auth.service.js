@@ -46,3 +46,23 @@ export const refreshTokenApi = (token, refreshToken) => {
     refreshToken,
   });
 };
+
+export const logoutApi = () => {
+  return api.post("/auth/logout");
+};
+
+export const getMyProfile = () => {
+  return api.get("/auth/profile");
+};
+
+export const forgotPassword = (data) => {
+  return api.post("/auth/forgot-password", data);
+};
+
+export const verifyResetCode = (data) => {
+  return api.post("/auth/verify-reset-code", data);
+};
+
+export const resetPassword = (data) => {
+  return api.post("/auth/reset-password", data);
+};

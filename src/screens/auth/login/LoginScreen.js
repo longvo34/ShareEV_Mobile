@@ -2,6 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 import LoadingOverlay from "../../../components/common/LoadingOverlay";
+import { ERROR_MESSAGES } from "../../../constants/errorMessages";
 import { login } from "../../../services/auth/auth.service";
 import { getAccessToken, saveTokens } from "../../../utils/authStorage";
 import styles from "./LoginScreen.styles";
@@ -38,12 +39,27 @@ export default function LoginScreen({ setIsLoggedIn }) {
     } catch (err) {
       console.log("LOGIN ERROR:", err);
 
-      if (!err.response) return;
+      if (!err.response) {
+        Alert.alert("Lỗi", "Không thể kết nối đến server");
+        return;
+      }
 
-      Alert.alert(
-        "Đăng nhập thất bại",
-        err.response?.data?.message || "Lỗi kết nối server",
-      );
+      const { status, data } = err.response;
+
+      // 🔴 400 - Validation error (swagger)
+      if (status === 400 && data?.errors?.Email) {
+        Alert.alert("Lỗi", ERROR_MESSAGES.EMAIL_INVALID);
+        return;
+      }
+
+      // 🔴 400 - Sai email / mật khẩu
+      if (status === 400 && data?.message) {
+        Alert.alert("Đăng nhập thất bại", data.message);
+        return;
+      }
+
+      // 🔴 fallback
+      Alert.alert("Lỗi", "Đăng nhập thất bại");
     } finally {
       setLoading(false);
     }

@@ -1,12 +1,10 @@
-import {
-    Feather,
-    Ionicons,
-    MaterialIcons
-} from "@expo/vector-icons";
+import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../../../constants/colors";
+import { logoutApi } from "../../../services/auth/auth.service";
+import { clearTokens } from "../../../utils/authStorage";
 import styles from "./ProfileScreen.styles";
 
 export default function ProfileScreen({ setIsLoggedIn }) {
@@ -14,15 +12,19 @@ export default function ProfileScreen({ setIsLoggedIn }) {
 
   const handleLogout = () => {
     Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất không?", [
-      {
-        text: "Hủy",
-        style: "cancel",
-      },
+      { text: "Hủy", style: "cancel" },
       {
         text: "Đăng xuất",
         style: "destructive",
-        onPress: () => {
-          setIsLoggedIn(false);
+        onPress: async () => {
+          try {
+            await logoutApi();
+          } catch (err) {
+            console.log("LOGOUT API ERROR:", err.response?.data || err.message);
+          } finally {
+            await clearTokens();
+            setIsLoggedIn(false);
+          }
         },
       },
     ]);

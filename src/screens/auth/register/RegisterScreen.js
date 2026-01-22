@@ -47,13 +47,11 @@ export default function RegisterScreen({ navigation }) {
         repeatPassword,
       });
 
-      // 3️⃣ send otp
       await sendOtp({
         email,
         type: "REGISTER",
       });
 
-      // 👉 sang màn nhập OTP
       navigation.navigate("VerifyEmail", { email });
     } catch (err) {
       console.log("REGISTER ERROR:", err.response?.data || err.message);
