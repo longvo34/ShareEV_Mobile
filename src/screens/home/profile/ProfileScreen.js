@@ -1,5 +1,6 @@
-import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Image,
@@ -10,12 +11,26 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../../../constants/colors";
-import { logoutApi } from "../../../services/auth/auth.service";
+import { getMyProfile, logoutApi } from "../../../services/auth/auth.service";
 import { clearTokens } from "../../../utils/authStorage";
 import styles from "./ProfileScreen.styles";
 
 export default function ProfileScreen({ setIsLoggedIn }) {
   const navigation = useNavigation();
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await getMyProfile();
+      setProfile(res.data.data);
+    } catch (err) {
+      console.log("GET PROFILE ERROR:", err.response?.data || err.message);
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất không?", [
@@ -41,18 +56,19 @@ export default function ProfileScreen({ setIsLoggedIn }) {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.header}
+          onPress={() => navigation.navigate("ProfileDetail")}
+        >
           <Image
             source={{ uri: "https://i.pravatar.cc/150?img=3" }}
             style={styles.avatar}
           />
 
-          <Text style={styles.name}>David Nguyễn</Text>
-
-          <TouchableOpacity>
-            <Feather name="more-horizontal" size={22} color={COLORS.text} />
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.name}>
+            {profile?.fullName || profile?.email || ""}
+          </Text>
+        </TouchableOpacity>
 
         {/* Menu */}
         <ScrollView
