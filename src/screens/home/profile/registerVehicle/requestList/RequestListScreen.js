@@ -31,7 +31,7 @@ const MOCK_DATA = [
     name: "VinFast VF e34",
     date: "10/11/2024",
     status: "REJECTED",
-    note: "Hồ sơ không hợp lệ",
+    note: "Hồ sơ không hợp lệ.",
   },
 ];
 
