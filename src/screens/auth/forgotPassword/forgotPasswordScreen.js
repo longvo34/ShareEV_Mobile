@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { forgotPassword } from "../../../services/auth/auth.service";
-import styles from "./ForgotPasswordScreen.styles";
+import styles from "./forgotPasswordScreen.styles";
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation();

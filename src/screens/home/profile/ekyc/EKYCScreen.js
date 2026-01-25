@@ -1,13 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../../../../constants/colors";
@@ -24,12 +25,23 @@ export default function EKYCScreen({ navigation }) {
   }, []);
 
   const pickImage = async (setImage) => {
-    const res = await ImagePicker.launchCameraAsync({
-      quality: 0.8,
-    });
+    try {
+      const res = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+      });
 
-    if (!res.canceled) {
-      setImage(res.assets[0]);
+      if (!res.canceled) {
+        // Compress ảnh
+        const compressed = await manipulateAsync(
+          res.assets[0].uri,
+          [{ resize: { width: 800 } }], // Resize width to 800px
+          { compress: 0.5, format: SaveFormat.JPEG }
+        );
+        setImage(compressed);
+      }
+    } catch (err) {
+      console.log("Camera error:", err);
+      Alert.alert("Lỗi", "Không thể truy cập camera");
     }
   };
 
@@ -41,10 +53,13 @@ export default function EKYCScreen({ navigation }) {
 
     try {
       setLoading(true);
-      await uploadCCCD(front, back);
+      const res = await uploadCCCD(front, back);
+      console.log("EKYC Response:", res.data);
       Alert.alert("Thành công", "Xác minh CCCD thành công");
-      navigation.goBack();
+      navigation.goBack({ ekycSuccess: true });
     } catch (err) {
+      console.log("EKYC Error:", err);
+      console.log("Response:", err.response);
       Alert.alert(
         "Thất bại",
         err.response?.data?.detail || "Xác minh không thành công",

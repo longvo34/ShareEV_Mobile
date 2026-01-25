@@ -26,8 +26,13 @@ export default function ProfileDetailScreen({ navigation }) {
   });
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      fetchProfile();
+    const unsubscribe = navigation.addListener("focus", (e) => {
+      const ekycSuccess = e?.data?.state?.routes?.find(route => route.name === 'ProfileDetail')?.params?.ekycSuccess;
+      if (ekycSuccess) {
+        setTimeout(fetchProfile, 3000); // Delay 3s để server xử lý
+      } else {
+        fetchProfile();
+      }
     });
 
     return unsubscribe;
@@ -40,6 +45,7 @@ export default function ProfileDetailScreen({ navigation }) {
     try {
       const res = await getMyProfile();
       const data = res.data.data;
+      console.log("Fetched profile:", data);
       setForm({
         fullName: data.fullName || "",
         dateOfBirth: data.dateOfBirth || "",
@@ -50,7 +56,7 @@ export default function ProfileDetailScreen({ navigation }) {
         email: data.email || "",
       });
     } catch (err) {
-      console.log(err);
+      console.log("Fetch profile error:", err);
     } finally {
       const elapsed = Date.now() - start;
       const MIN_LOADING = 800; // ms
