@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import ProfileScreen from "../screens/home/profile/ProfileScreen";
 import ChangePasswordScreen from "../screens/home/profile/changePassword/ChangePassword";
+import EKYCScreen from "../screens/home/profile/ekyc/EKYCScreen";
 import ProfileDetailScreen from "../screens/home/profile/profileDetail/ProfileDetailScreen";
 
 const Stack = createNativeStackNavigator();
@@ -13,6 +14,8 @@ export default function ProfileStack({ setIsLoggedIn }) {
       </Stack.Screen>
 
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+
+      <Stack.Screen name="EKYC" component={EKYCScreen} />
 
       <Stack.Screen name="ChangePassword">
         {(props) => (
