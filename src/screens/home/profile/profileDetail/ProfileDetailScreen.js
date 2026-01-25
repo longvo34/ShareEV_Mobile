@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   ScrollView,
   Text,
   TextInput,
@@ -9,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import EVLoading from "../../../../components/animation/EVLoading";
 import COLORS from "../../../../constants/colors";
 import { getMyProfile } from "../../../../services/auth/auth.service";
 import styles from "./ProfileDetailScreen.styles";
@@ -34,10 +34,12 @@ export default function ProfileDetailScreen({ navigation }) {
   }, [navigation]);
 
   const fetchProfile = async () => {
+    setLoading(true);
+    const start = Date.now();
+
     try {
       const res = await getMyProfile();
       const data = res.data.data;
-
       setForm({
         fullName: data.fullName || "",
         dateOfBirth: data.dateOfBirth || "",
@@ -48,19 +50,19 @@ export default function ProfileDetailScreen({ navigation }) {
         email: data.email || "",
       });
     } catch (err) {
-      console.log("GET PROFILE ERROR:", err.response?.data || err.message);
+      console.log(err);
     } finally {
-      setLoading(false);
+      const elapsed = Date.now() - start;
+      const MIN_LOADING = 800; // ms
+
+      setTimeout(
+        () => {
+          setLoading(false);
+        },
+        Math.max(0, MIN_LOADING - elapsed),
+      );
     }
   };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -137,10 +139,14 @@ export default function ProfileDetailScreen({ navigation }) {
       {/* BOTTOM BUTTON */}
       <TouchableOpacity
         style={styles.bottomBtn}
+        disabled={loading}
         onPress={() => navigation.navigate("EKYC")}
       >
         <Text style={styles.bottomText}>Cập nhật thông tin</Text>
       </TouchableOpacity>
+
+      {/* LOADING XE */}
+      {loading && <EVLoading />}
     </SafeAreaView>
   );
 }
