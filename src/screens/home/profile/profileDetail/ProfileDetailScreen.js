@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../../../../constants/colors";
@@ -26,8 +26,12 @@ export default function ProfileDetailScreen({ navigation }) {
   });
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    const unsubscribe = navigation.addListener("focus", () => {
+      fetchProfile();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const fetchProfile = async () => {
     try {
@@ -131,7 +135,10 @@ export default function ProfileDetailScreen({ navigation }) {
       </ScrollView>
 
       {/* BOTTOM BUTTON */}
-      <TouchableOpacity style={styles.bottomBtn}>
+      <TouchableOpacity
+        style={styles.bottomBtn}
+        onPress={() => navigation.navigate("EKYC")}
+      >
         <Text style={styles.bottomText}>Cập nhật thông tin</Text>
       </TouchableOpacity>
     </SafeAreaView>
