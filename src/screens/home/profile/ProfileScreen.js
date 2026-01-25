@@ -117,6 +117,7 @@ export default function ProfileScreen({ setIsLoggedIn }) {
                 />
               }
               label="Đăng ký xe"
+              onPress={() => navigation.navigate("RegisterVehicle")}
             />
 
             <MenuItem
