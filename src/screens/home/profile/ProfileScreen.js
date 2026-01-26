@@ -117,17 +117,27 @@ export default function ProfileScreen({ setIsLoggedIn }) {
               onPress={() => navigation.navigate("History")}
             />
 
-            <MenuItem
-              icon={
-                <Ionicons
-                  name="add-circle-outline"
-                  size={22}
-                  color={COLORS.text}
-                />
-              }
-              label="Đăng ký xe"
-              onPress={() => navigation.navigate("RegisterVehicle")}
-            />
+           <MenuItem
+  icon={<Ionicons name="add-circle-outline" size={22} color={COLORS.text} />}
+  label="Đăng ký xe"
+  onPress={() => {
+    if (!profile?.dateOfBirth || !profile?.address) {
+      Alert.alert(
+        "Cần xác thực",
+        "Bạn cần xác thực eKYC và cập nhật thông tin cá nhân trước khi đăng ký xe",
+        [
+          { text: "Hủy", style: "cancel" },
+          {
+            text: "Xác thực ngay",
+            onPress: () => navigation.navigate("EKYC"),
+          },
+        ]
+      );
+    } else {
+      navigation.navigate("RegisterVehicle");
+    }
+  }}
+/>
 
             <MenuItem
               icon={

@@ -29,6 +29,10 @@ export default function LoginScreen({ setIsLoggedIn }) {
 
       console.log("USER:", user);
 
+      if (!token || !refreshToken) {
+        return;
+      }
+
       await saveTokens({ token, refreshToken });
 
       const check = await getAccessToken();

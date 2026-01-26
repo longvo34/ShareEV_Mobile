@@ -121,4 +121,24 @@ export default StyleSheet.create({
     justifyContent: "center",
     elevation: 4,
   },
+  emptyContainer: {
+  flex: 1,
+  alignItems: "center",
+  justifyContent: "center",
+  paddingBottom: 80,
+},
+
+emptyTitle: {
+  marginTop: 16,
+  fontSize: 16,
+  fontWeight: "600",
+  color: COLORS.text,
+},
+
+emptyDesc: {
+  marginTop: 6,
+  fontSize: 13,
+  color: COLORS.gray,
+  textAlign: "center",
+},
 });
