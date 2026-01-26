@@ -8,6 +8,7 @@ import ForgotPasswordScreen from "../screens/auth/forgotPassword/forgotPasswordS
 import ResetPasswordScreen from "../screens/auth/forgotPassword/ResetPasswordScreen";
 import VerifyOtpScreen from "../screens/auth/forgotPassword/VerifyOtpScreen";
 
+
 const Stack = createNativeStackNavigator();
 
 export default function AuthNavigator({ setIsLoggedIn }) {

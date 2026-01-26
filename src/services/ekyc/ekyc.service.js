@@ -1,4 +1,4 @@
-import { EncodingType, readAsStringAsync } from 'expo-file-system/legacy';
+import { EncodingType, readAsStringAsync } from "expo-file-system/legacy";
 import api from "../api";
 
 export const uploadCCCD = async (frontImage, backImage) => {
@@ -23,9 +23,20 @@ export const uploadCCCD = async (frontImage, backImage) => {
     type: "image/jpeg",
   });
 
-  return api.post("/ekyc/cccd", formData, {
+  const res = await api.post("/ekyc/cccd", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
+
+  console.log("EKYC RESPONSE:", res.data);
+
+  // 🔥 QUAN TRỌNG: parse chuỗi JSON backend trả về
+  try {
+    const parsed = JSON.parse(res.data.data);
+    return parsed?.data?.[0] ?? null;
+  } catch (err) {
+    console.log("❌ Parse EKYC failed:", err);
+    return null;
+  }
 };

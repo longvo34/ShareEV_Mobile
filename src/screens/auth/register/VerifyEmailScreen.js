@@ -30,8 +30,11 @@ export default function VerifyEmailScreen({ route, navigation }) {
     try {
       setLoading(true);
       await verifyEmail({ email, code });
-      Alert.alert("Thành công", "Xác thực email thành công");
-      navigation.navigate("Login");
+
+navigation.reset({
+  index: 0,
+  routes: [{ name: "Login" }],
+});
     } catch (err) {
       Alert.alert("Lỗi", err.response?.data?.message || "OTP không đúng");
     } finally {
@@ -64,7 +67,12 @@ export default function VerifyEmailScreen({ route, navigation }) {
         { text: "Không", style: "cancel" },
         {
           text: "Có",
-          onPress: () => navigation.navigate("Login"),
+         onPress: () => {
+  navigation.reset({
+    index: 0,
+    routes: [{ name: "Login" }],
+  });
+}
         },
       ],
     );
