@@ -42,6 +42,7 @@ export default function ProfileDetailScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     fullName: "",
+    email: "",
     dateOfBirth: "",
     gender: "",
     phone: "",
@@ -71,6 +72,7 @@ export default function ProfileDetailScreen({ navigation, route }) {
 
         setForm({
           fullName: data.fullName || "",
+          email: data.email || "",
           dateOfBirth: data.dateOfBirth || "",
           gender: data.gender || "",
           phone: data.phone || "",
@@ -145,6 +147,9 @@ export default function ProfileDetailScreen({ navigation, route }) {
           value={form.fullName}
           onChangeText={(v) => setForm({ ...form, fullName: v })}
         />
+
+        <Label text="Email" />
+<Input value={form.email} editable={false} />
 
         <Label text="Ngày sinh (YYYY-MM-DD)" />
         <Input
