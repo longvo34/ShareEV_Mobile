@@ -1,11 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import COLORS from "../../../../../constants/colors";
 import styles from "./Step4UploadDocsScreen.styles";
 
 export default function Step4UploadDocsScreen() {
   const navigation = useNavigation();
+   const route = useRoute();
+
+  const { step1Data, step2Data, step3Data } = route.params || {};
+
+  console.log("📥 STEP 1:", step1Data);
+  console.log("📥 STEP 2:", step2Data);
+  console.log("📥 STEP 3:", step3Data);
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
