@@ -1,6 +1,6 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useCallback, useState } from "react";
 import {
   Alert,
   Image,
@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../../../constants/colors";
-import { getMyProfile, logoutApi } from "../../../services/auth/auth.service";
+import { logoutApi } from "../../../services/auth/auth.service";
+import { getUserProfile } from "../../../services/user/user.service";
 import { clearTokens } from "../../../utils/authStorage";
 import styles from "./ProfileScreen.styles";
 
@@ -19,13 +20,15 @@ export default function ProfileScreen({ setIsLoggedIn }) {
   const navigation = useNavigation();
   const [profile, setProfile] = useState(null);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
 
   const fetchProfile = async () => {
     try {
-      const res = await getMyProfile();
+      const res = await getUserProfile();
       setProfile(res.data.data);
     } catch (err) {
       console.log("GET PROFILE ERROR:", err.response?.data || err.message);
@@ -58,7 +61,13 @@ export default function ProfileScreen({ setIsLoggedIn }) {
         {/* Header */}
         <TouchableOpacity
           style={styles.header}
-          onPress={() => navigation.navigate("ProfileDetail")}
+          onPress={() => {
+  if (!profile?.dateOfBirth || !profile?.address) {
+    navigation.navigate("EKYC");
+  } else {
+    navigation.navigate("ProfileDetail");
+  }
+}}
         >
           <Image
             source={{ uri: "https://i.pravatar.cc/150?img=3" }}

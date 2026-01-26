@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import LoadingScreen from "../screens/loading/LoadingScreen";
+import LoadingScreen from "../screens/Loading/LoadingScreen";
 import { getAccessToken } from "../utils/authStorage";
 import AuthNavigator from "./AuthNavigator";
 import MainNavigator from "./MainNavigator";

@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
+  Alert,
   ScrollView,
   Text,
   TextInput,
@@ -10,148 +11,179 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import EVLoading from "../../../../components/animation/EVLoading";
 import COLORS from "../../../../constants/colors";
-import { getMyProfile } from "../../../../services/auth/auth.service";
+import {
+  getUserProfile,
+  updateUserProfile,
+} from "../../../../services/user/user.service";
 import styles from "./ProfileDetailScreen.styles";
 
-export default function ProfileDetailScreen({ navigation }) {
+/* ================= NORMALIZE ================= */
+
+const normalizeDOB = (dob) => {
+  if (!dob) return undefined;
+  if (dob.includes("-")) return dob;
+  const [d, m, y] = dob.split("/");
+  return `${y}-${m}-${d}`;
+};
+
+const normalizeGender = (sex) => {
+  if (!sex) return undefined;
+  const s = sex.toLowerCase();
+  if (s === "male" || s.includes("nam")) return "Male";
+  if (s === "female" || s.includes("nữ")) return "Female";
+  return undefined;
+};
+
+/* ============================================= */
+
+export default function ProfileDetailScreen({ navigation, route }) {
+  const ekycData = route.params?.ekycData;
+
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     fullName: "",
     dateOfBirth: "",
     gender: "",
     phone: "",
-    identityCode: "",
     address: "",
-    email: "",
+    homeTown: "",
   });
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      fetchProfile();
-    });
+    const init = async () => {
+      try {
+        setLoading(true);
 
-    return unsubscribe;
-  }, [navigation]);
+        if (ekycData) {
+          setForm({
+            fullName: ekycData.name || "",
+            dateOfBirth: normalizeDOB(ekycData.dob) || "",
+            gender: normalizeGender(ekycData.sex) || "",
+            phone: "",
+            address: ekycData.address || "",
+            homeTown: ekycData.home || "",
+          });
+          return;
+        }
 
-  const fetchProfile = async () => {
-    setLoading(true);
-    const start = Date.now();
+        const res = await getUserProfile();
+        const data = res.data.data;
 
+        setForm({
+          fullName: data.fullName || "",
+          dateOfBirth: data.dateOfBirth || "",
+          gender: data.gender || "",
+          phone: data.phone || "",
+          address: data.address || "",
+          homeTown: data.homeTown || "",
+        });
+      } catch (err) {
+        console.log("INIT ERROR:", err.response?.data || err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, []);
+
+  const handleSubmit = async () => {
     try {
-      const res = await getMyProfile();
-      const data = res.data.data;
-      setForm({
-        fullName: data.fullName || "",
-        dateOfBirth: data.dateOfBirth || "",
-        gender: data.gender || "",
-        phone: data.phone || "",
-        identityCode: data.identityCode || "",
-        address: data.address || "",
-        email: data.email || "",
-      });
-    } catch (err) {
-      console.log(err);
-    } finally {
-      const elapsed = Date.now() - start;
-      const MIN_LOADING = 800; // ms
+      setLoading(true);
 
-      setTimeout(
-        () => {
-          setLoading(false);
-        },
-        Math.max(0, MIN_LOADING - elapsed),
+      const payload = {
+        fullName: form.fullName,
+        nationality: "VIỆT NAM",
+      };
+
+      if (form.phone) payload.phone = form.phone;
+      if (form.dateOfBirth)
+        payload.dateOfBirth = normalizeDOB(form.dateOfBirth);
+      if (form.gender)
+        payload.gender = normalizeGender(form.gender);
+      if (form.homeTown) payload.homeTown = form.homeTown;
+      if (form.address) payload.address = form.address;
+
+      console.log("FINAL PAYLOAD:", payload);
+
+      await updateUserProfile(payload);
+
+      Alert.alert("Thành công", "Cập nhật profile thành công");
+      navigation.navigate("Profile");
+    } catch (err) {
+      console.log("UPDATE ERROR:", err.response?.data || err);
+      Alert.alert(
+        "Lỗi",
+        err.response?.data?.message || "Cập nhật thất bại"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <EVLoading />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-
-        <Text style={styles.headerTitle}>Xác minh danh tính</Text>
-
+        <Text style={styles.headerTitle}>Thông tin cá nhân</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      {/* BODY */}
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Thông tin cá nhân</Text>
-
+      <ScrollView>
         <Label text="Họ và tên" />
         <Input
-          placeholder="Nhập họ và tên đầy đủ"
           value={form.fullName}
           onChangeText={(v) => setForm({ ...form, fullName: v })}
         />
 
-        <View style={styles.row2}>
-          <View style={{ flex: 1 }}>
-            <Label text="Ngày sinh" />
-            <Input
-              placeholder="DD/MM/YYYY"
-              value={form.dateOfBirth}
-              onChangeText={(v) => setForm({ ...form, dateOfBirth: v })}
-            />
-          </View>
+        <Label text="Ngày sinh (YYYY-MM-DD)" />
+        <Input
+          value={form.dateOfBirth}
+          onChangeText={(v) => setForm({ ...form, dateOfBirth: v })}
+        />
 
-          <View style={{ width: 12 }} />
-
-          <View style={{ flex: 1 }}>
-            <Label text="Giới tính" />
-            <Input
-              placeholder="Nam"
-              value={form.gender}
-              onChangeText={(v) => setForm({ ...form, gender: v })}
-            />
-          </View>
-        </View>
+        <Label text="Giới tính (Male / Female)" />
+        <Input
+          value={form.gender}
+          onChangeText={(v) => setForm({ ...form, gender: v })}
+        />
 
         <Label text="Số điện thoại" />
         <Input
-          placeholder="09xx xxx xxx"
           keyboardType="phone-pad"
           value={form.phone}
           onChangeText={(v) => setForm({ ...form, phone: v })}
         />
 
-        <Label text="Email" />
-        <Input value={form.email} editable={false} />
-
-        <Label text="Số CCCD / CMND" />
+        <Label text="Quê quán" />
         <Input
-          placeholder="Nhập số giấy tờ tùy thân"
-          value={form.identityCode}
-          onChangeText={(v) => setForm({ ...form, identityCode: v })}
+          value={form.homeTown}
+          onChangeText={(v) => setForm({ ...form, homeTown: v })}
         />
 
-        <Label text="Địa chỉ thường trú" />
+        <Label text="Địa chỉ" />
         <Input
-          placeholder="Nhập địa chỉ theo giấy tờ"
           value={form.address}
           onChangeText={(v) => setForm({ ...form, address: v })}
         />
       </ScrollView>
 
-      {/* BOTTOM BUTTON */}
-      <TouchableOpacity
-        style={styles.bottomBtn}
-        disabled={loading}
-        onPress={() => navigation.navigate("EKYC")}
-      >
-        <Text style={styles.bottomText}>Cập nhật thông tin</Text>
+      <TouchableOpacity style={styles.bottomBtn} onPress={handleSubmit}>
+        <Text style={styles.bottomText}>Lưu</Text>
       </TouchableOpacity>
-
-      {/* LOADING XE */}
-      {loading && <EVLoading />}
     </SafeAreaView>
   );
 }
-
-/* ===== COMPONENT PHỤ ===== */
 
 function Label({ text }) {
   return <Text style={styles.label}>{text}</Text>;
@@ -161,7 +193,7 @@ function Input(props) {
   return (
     <TextInput
       {...props}
-      style={[styles.input, props.editable === false && styles.inputDisabled]}
+      style={styles.input}
       placeholderTextColor={COLORS.gray}
     />
   );

@@ -1,16 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useState } from "react";
 import {
-    Alert,
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import COLORS from "../../../../constants/colors";
 import { uploadCCCD } from "../../../../services/ekyc/ekyc.service";
 import styles from "./EKYCScreen.styles";
 
@@ -24,12 +24,22 @@ export default function EKYCScreen({ navigation }) {
   }, []);
 
   const pickImage = async (setImage) => {
-    const res = await ImagePicker.launchCameraAsync({
-      quality: 0.8,
-    });
+    try {
+      const res = await ImagePicker.launchCameraAsync({ quality: 0.5 });
 
-    if (!res.canceled) {
-      setImage(res.assets[0]);
+      if (!res.canceled) {
+        const compressed = await manipulateAsync(
+          res.assets[0].uri,
+          [{ resize: { width: 600 } }],
+          {
+            compress: 0.4,
+            format: SaveFormat.JPEG,
+          }
+        );
+        setImage(compressed);
+      }
+    } catch (err) {
+      Alert.alert("Lỗi", "Không thể truy cập camera");
     }
   };
 
@@ -41,13 +51,24 @@ export default function EKYCScreen({ navigation }) {
 
     try {
       setLoading(true);
-      await uploadCCCD(front, back);
-      Alert.alert("Thành công", "Xác minh CCCD thành công");
-      navigation.goBack();
+
+      console.log("Starting eKYC upload");
+
+      const ekycData = await uploadCCCD(front, back);
+
+      console.log("EKYC data received:", ekycData);
+
+      if (!ekycData) {
+        Alert.alert("Lỗi", "Không đọc được thông tin CCCD");
+        return;
+      }
+
+      navigation.navigate("ProfileDetail", { ekycData });
     } catch (err) {
+      console.log("EKYC ERROR:", err.response?.data || err);
       Alert.alert(
         "Thất bại",
-        err.response?.data?.detail || "Xác minh không thành công",
+        err.response?.data?.detail || "Xác minh không thành công"
       );
     } finally {
       setLoading(false);
@@ -59,55 +80,47 @@ export default function EKYCScreen({ navigation }) {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          <Ionicons name="arrow-back" size={24} />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>Xác minh CCCD</Text>
-
         <View style={{ width: 24 }} />
       </View>
 
       {/* BODY */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 24 }}
-      >
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => pickImage(setFront)}
-        >
+      <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+        <TouchableOpacity style={styles.card} onPress={() => pickImage(setFront)}>
           {front ? (
             <Image source={{ uri: front.uri }} style={styles.image} />
           ) : (
             <View style={styles.placeholder}>
               <Text>📷</Text>
-              <Text style={styles.placeholderText}>Chụp mặt trước CCCD</Text>
+              <Text>Chụp mặt trước CCCD</Text>
             </View>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => pickImage(setBack)}
-        >
+        <TouchableOpacity style={styles.card} onPress={() => pickImage(setBack)}>
           {back ? (
             <Image source={{ uri: back.uri }} style={styles.image} />
           ) : (
             <View style={styles.placeholder}>
               <Text>📷</Text>
-              <Text style={styles.placeholderText}>Chụp mặt sau CCCD</Text>
+              <Text>Chụp mặt sau CCCD</Text>
             </View>
           )}
         </TouchableOpacity>
       </ScrollView>
 
-      {/* BOTTOM BUTTON */}
+      {/* BUTTON */}
       <TouchableOpacity
         style={[styles.submitBtn, (!front || !back) && styles.disabledBtn]}
         onPress={submit}
-        disabled={!front || !back}
+        disabled={!front || !back || loading}
       >
-        <Text style={styles.submitText}>Xác nhận</Text>
+        <Text style={styles.submitText}>
+          {loading ? "Đang xử lý..." : "Xác nhận"}
+        </Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
