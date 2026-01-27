@@ -1,74 +1,135 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import {
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+import * as ImagePicker from "expo-image-picker";
+import { useState } from "react";
+import { Alert, Image } from "react-native";
 import COLORS from "../../../../../constants/colors";
+import { createVehicleWithImages } from "../../../../../services/vehicle/vehicle.service";
 import styles from "./Step4UploadDocsScreen.styles";
 
 export default function Step4UploadDocsScreen() {
   const navigation = useNavigation();
-   const route = useRoute();
+  const route = useRoute();
+  
 
-  const { step1Data, step2Data, step3Data } = route.params || {};
+  const { step1Data } = route.params || {};
 
-  console.log("📥 STEP 1:", step1Data);
-  console.log("📥 STEP 2:", step2Data);
-  console.log("📥 STEP 3:", step3Data);
+ 
+  const [images, setImages] = useState([]);
+const MAX_IMAGES = 6;
+
+const pickImage = async (index) => {
+  if (images.length >= MAX_IMAGES && !images[index]) return;
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    quality: 0.7,
+  });
+
+  if (!result.canceled) {
+    const newImages = [...images];
+    newImages[index] = result.assets[0];
+    setImages(newImages.filter(Boolean));
+  }
+};
+
+const onSubmit = async () => {
+  if (images.length === 0) {
+    Alert.alert("Thiếu hình ảnh", "Vui lòng tải ít nhất 1 hình xe");
+    return;
+  }
+
+  try {
+    await createVehicleWithImages(step1Data, images);
+
+    Alert.alert("Thành công", "Đăng ký xe thành công", [
+      {
+        text: "OK",
+        onPress: () =>
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "VehicleRequestList" }],
+          }),
+      },
+    ]);
+  } catch (e) {
+    console.log("❌ CREATE VEHICLE ERROR:", e.response?.data || e);
+    Alert.alert("Lỗi", "Không thể đăng ký xe");
+  }
+};
+
+
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={22} color={COLORS.black} />
-        </TouchableOpacity>
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* HEADER */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={22} color={COLORS.black} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Đăng ký xe</Text>
+          <View style={{ width: 22 }} />
+        </View>
 
-        <Text style={styles.headerTitle}>Đăng ký xe</Text>
-      </View>
+        {/* STEP */}
+        <View style={styles.stepRow}>
+          <View style={[styles.stepDot, styles.active]} />
+          <View style={[styles.stepDot, styles.active]} />
+        </View>
+        <Text style={styles.stepText}>Bước 2/2</Text>
 
-      {/* Step */}
-      <View style={styles.stepRow}>
-        <View style={[styles.stepDot, styles.active]} />
-        <View style={[styles.stepDot, styles.active]} />
-        <View style={[styles.stepDot, styles.active]} />
-        <View style={[styles.stepDot, styles.active]} />
-      </View>
-      <Text style={styles.stepText}>Bước 4/4</Text>
+        <Text style={styles.sectionTitle}>Hình ảnh xe</Text>
+        <Text style={styles.subTitle}>
+          Tải tối đa {MAX_IMAGES} hình (ngoại thất & nội thất)
+        </Text>
 
-      <Text style={styles.sectionTitle}>Tải ảnh xe & giấy tờ</Text>
+        {/* IMAGE GRID */}
+       <View style={styles.imageGrid}>
+  {Array.from({ length: MAX_IMAGES }).map((_, index) => {
+    const img = images[index];
 
-      <Text style={styles.subTitle}>Ảnh ngoại thất</Text>
-      <View style={styles.imageBox}>
-        <Text>📷 Thêm ảnh</Text>
-      </View>
+    return (
+      <TouchableOpacity
+        key={index}
+        style={styles.imageBox}
+        onPress={() => pickImage(index)}
+      >
+        {img ? (
+          <Image
+            source={{ uri: img.uri }}
+            style={{ width: "100%", height: "100%", borderRadius: 8 }}
+          />
+        ) : (
+          <Ionicons name="camera" size={26} color={COLORS.gray} />
+        )}
+      </TouchableOpacity>
+    );
+  })}
+</View>
 
-      <Text style={styles.subTitle}>Ảnh nội thất</Text>
-      <View style={styles.imageBox}>
-        <Text>📷 Thêm ảnh</Text>
-      </View>
+<Text style={styles.imageCount}>
+  {images.length}/{MAX_IMAGES} hình
+</Text>
 
-      <Text style={styles.subTitle}>Giấy tờ xe</Text>
 
-      <View style={styles.fileItem}>
-        <Text>📄 Cavet xe (mặt trước)</Text>
-        <Text style={styles.uploadText}>Tải lên</Text>
-      </View>
-
-      <View style={styles.fileItem}>
-        <Text>📄 Cavet xe (mặt sau)</Text>
-        <Text style={styles.uploadText}>Tải lên</Text>
-      </View>
-
-      <View style={styles.fileItem}>
-        <Text>📄 Sổ đăng kiểm</Text>
-        <Text style={styles.uploadText}>Tải lên</Text>
-      </View>
-
-      <View style={styles.footerCenter}>
-        <TouchableOpacity style={styles.nextBtn}>
-          <Text style={styles.nextText}>Gửi thông tin xe →</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        {/* SUBMIT */}
+        <View style={styles.footerCenter}>
+         <TouchableOpacity style={styles.nextBtn} onPress={onSubmit}>
+  <Text style={styles.nextText}>Gửi thông tin xe →</Text>
+</TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
