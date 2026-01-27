@@ -12,10 +12,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import DateTimePicker from "@react-native-community/datetimepicker";
 import COLORS from "../../../../../constants/colors";
 import { getVehicleBrands } from "../../../../../services/vehicleBrand/vehicleBrand.service";
 import { getVehicleModels } from "../../../../../services/vehicleModel/vehicleModel.service";
 import styles from "./Step1BasicInfoScreen.styles";
+
+const toNumberOrNull = (value) => {
+  if (value === "" || value === null || value === undefined) return null;
+  const num = Number(value);
+  return Number.isNaN(num) ? null : num;
+};
 
 export default function Step1BasicInfoScreen({ navigation }) {
   const [brands, setBrands] = useState([]);
@@ -26,16 +33,18 @@ export default function Step1BasicInfoScreen({ navigation }) {
 
   const [showYearPicker, setShowYearPicker] = useState(false);
   const [showRegisterYearPicker, setShowRegisterYearPicker] = useState(false);
+  const [showMaintenancePicker, setShowMaintenancePicker] = useState(false);
+  const [maintenanceDate, setMaintenanceDate] = useState(new Date());
 
   const [form, setForm] = useState({
     vehicleBrand: null,
     vehicleModel: null,
     yearManufacture: "",
-    yearRegister: "",
-    seats: "",
     licensePlate: "",
     exteriorColor: "",
-    interiorColor: "",
+    odometer: "",
+    batteryHealth: "",
+    lastMaintenanceDate: "",
   });
 
   const currentYear = new Date().getFullYear();
@@ -62,7 +71,7 @@ export default function Step1BasicInfoScreen({ navigation }) {
   };
 
   const filteredModels = form.vehicleBrand
-  
+
     ? models.filter(
       (m) =>
         m.vehicleBrand.vehicleBrandId ===
@@ -70,11 +79,11 @@ export default function Step1BasicInfoScreen({ navigation }) {
     )
     : [];
 
-    const hasModels = filteredModels.length > 0;
+  const hasModels = filteredModels.length > 0;
 
-    const registerYears = form.yearManufacture
-  ? years.filter((y) => y >= Number(form.yearManufacture))
-  : [];
+  const registerYears = form.yearManufacture
+    ? years.filter((y) => y >= Number(form.yearManufacture))
+    : [];
 
   const onNext = () => {
   if (!form.vehicleBrand) {
@@ -92,48 +101,29 @@ export default function Step1BasicInfoScreen({ navigation }) {
     return;
   }
 
-  if (!form.yearRegister) {
-    Alert.alert("Thiếu thông tin", "Vui lòng chọn năm đăng ký");
-    return;
-  }
-
-  if (!form.seats) {
-    Alert.alert("Thiếu thông tin", "Vui lòng nhập số ghế");
-    return;
-  }
-
   if (!form.licensePlate) {
     Alert.alert("Thiếu thông tin", "Vui lòng nhập biển số xe");
     return;
   }
 
   if (!form.exteriorColor) {
-    Alert.alert("Thiếu thông tin", "Vui lòng nhập màu ngoại thất");
+    Alert.alert("Thiếu thông tin", "Vui lòng nhập màu xe");
     return;
   }
 
-  if (!form.interiorColor) {
-    Alert.alert("Thiếu thông tin", "Vui lòng nhập màu nội thất");
-    return;
-  }
-
-
-  navigation.navigate("RegisterVehicle", {
-    screen: "VehicleStep2",
-    params: {
-      step1Data: {
-        vehicleBrandId: form.vehicleBrand.vehicleBrandId,
-        vehicleModelId: form.vehicleModel.vehicleModelId,
-        yearManufacture: Number(form.yearManufacture),
-        yearRegister: Number(form.yearRegister),
-        seats: Number(form.seats),
-        licensePlate: form.licensePlate,
-        exteriorColor: form.exteriorColor,
-        interiorColor: form.interiorColor,
-      },
+  navigation.navigate("VehicleStep4", {
+    step1Data: {
+      vehicleModelId: form.vehicleModel.vehicleModelId,
+      licensePlate: form.licensePlate,
+      color: form.exteriorColor,
+      year: Number(form.yearManufacture),
+      odometer: toNumberOrNull(form.odometer),
+      batteryHealth: toNumberOrNull(form.batteryHealth),
+      lastMaintenanceDate: form.lastMaintenanceDate || null,
     },
   });
 };
+
 
 
 
@@ -149,14 +139,13 @@ export default function Step1BasicInfoScreen({ navigation }) {
       </View>
 
       {/* STEP */}
-<View style={styles.stepRow}>
-  <View style={[styles.stepDot, styles.active]} />
-  <View style={styles.stepDot} />
-  <View style={styles.stepDot} />
-  <View style={styles.stepDot} />
-</View>
+      <View style={styles.stepRow}>
+        <View style={[styles.stepDot, styles.active]} />
+        <View style={styles.stepDot} />
+       
+      </View>
 
-<Text style={styles.stepText}>Bước 1/4</Text>
+      <Text style={styles.stepText}>Bước 1/2</Text>
 
       <Text style={styles.sectionTitle}>Thông tin cơ bản của xe</Text>
 
@@ -170,21 +159,21 @@ export default function Step1BasicInfoScreen({ navigation }) {
 
         {/* ===== MODEL ===== */}
         {/* ===== MODEL ===== */}
-<Label text="Dòng xe" />
-<DropdownInput
-  disabled={!form.vehicleBrand || !hasModels}
-  value={
-    !form.vehicleBrand
-      ? "Chọn hãng xe trước"
-      : !hasModels
-      ? "Hãng này chưa có dòng xe"
-      : form.vehicleModel?.name || "Chọn dòng xe"
-  }
-  onPress={() => {
-    if (!hasModels) return;
-    setShowModelModal(true);
-  }}
-/>
+        <Label text="Dòng xe" />
+        <DropdownInput
+          disabled={!form.vehicleBrand || !hasModels}
+          value={
+            !form.vehicleBrand
+              ? "Chọn hãng xe trước"
+              : !hasModels
+                ? "Hãng này chưa có dòng xe"
+                : form.vehicleModel?.name || "Chọn dòng xe"
+          }
+          onPress={() => {
+            if (!hasModels) return;
+            setShowModelModal(true);
+          }}
+        />
 
 
         {/* ===== OTHER FIELDS (GIỮ NGUYÊN) ===== */}
@@ -207,35 +196,13 @@ export default function Step1BasicInfoScreen({ navigation }) {
             </TouchableOpacity>
 
           </View>
-          <View style={{ width: 12 }} />
-          <View style={{ flex: 1 }}>
-            <Label text="Năm đăng ký" />
-           <TouchableOpacity
-  style={styles.input}
-  onPress={() => setShowRegisterYearPicker(true)}
-  disabled={!form.yearManufacture}
->
-  <Text
-    style={{
-      color: form.yearRegister
-        ? COLORS.black
-        : COLORS.gray,
-    }}
-  >
-    {form.yearRegister || "Chọn năm"}
-  </Text>
-</TouchableOpacity>
 
-          </View>
+
+
+
         </View>
 
-        <Label text="Số ghế" />
-        <Input
-          placeholder="Ví dụ: 5"
-          keyboardType="number-pad"
-          value={form.seats}
-          onChangeText={(v) => setForm({ ...form, seats: v })}
-        />
+
 
         <Label text="Biển số xe" />
         <Input
@@ -254,21 +221,57 @@ export default function Step1BasicInfoScreen({ navigation }) {
             setForm({ ...form, exteriorColor: v })
           }
         />
+       <Label text="ODO (km đã đi)" />
+<Input
+  placeholder="Ví dụ: 25000"
+  keyboardType="number-pad"
+  value={form.odometer}
+  onChangeText={(v) => {
+    const cleaned = v.replace(/[^0-9]/g, "");
+    setForm({ ...form, odometer: cleaned });
+  }}
+/>
 
-        <Label text="Màu nội thất" />
-        <Input
-          placeholder="Nhập màu nội thất"
-          value={form.interiorColor}
-          onChangeText={(v) =>
-            setForm({ ...form, interiorColor: v })
-          }
-        />
+       <Label text="Tình trạng pin (%)" />
+<Input
+  placeholder="Ví dụ: 90"
+  keyboardType="number-pad"
+  value={form.batteryHealth}
+  onChangeText={(v) => {
+    let cleaned = v.replace(/[^0-9]/g, "");
+    if (cleaned !== "") {
+      const num = Number(cleaned);
+      if (num > 100) cleaned = "100";
+    }
+    setForm({ ...form, batteryHealth: cleaned });
+  }}
+/>
+        <Label text="Ngày bảo dưỡng gần nhất" />
+
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => setShowMaintenancePicker(true)}
+        >
+          <Text
+            style={{
+              color: form.lastMaintenanceDate ? COLORS.black : COLORS.gray,
+            }}
+          >
+            {form.lastMaintenanceDate
+              ? new Date(form.lastMaintenanceDate).toLocaleDateString("vi-VN")
+              : "Chọn ngày"}
+          </Text>
+        </TouchableOpacity>
+
+
+
+
       </ScrollView>
 
       <TouchableOpacity
-  style={styles.nextBtn}
-  onPress={onNext}
->
+        style={styles.nextBtn}
+        onPress={onNext}
+      >
         <Text style={styles.nextText}>Tiếp tục →</Text>
       </TouchableOpacity>
 
@@ -343,49 +346,74 @@ export default function Step1BasicInfoScreen({ navigation }) {
         </TouchableOpacity>
       )}
 
+      {showMaintenancePicker && (
+        <DateTimePicker
+          value={
+            form.lastMaintenanceDate
+              ? new Date(form.lastMaintenanceDate)
+              : new Date()
+          }
+          mode="date"
+          display="spinner" // iOS: spinner / calendar | Android: default
+          maximumDate={new Date()} // không cho chọn ngày tương lai
+          onChange={(event, selectedDate) => {
+            setShowMaintenancePicker(false);
+            if (selectedDate) {
+              setForm({
+                ...form,
+                lastMaintenanceDate: selectedDate.toISOString(),
+              });
+            }
+          }}
+        />
+      )}
+
+
+
+
       {showRegisterYearPicker && (
-  <TouchableOpacity
-    activeOpacity={1}
-    onPress={() => setShowRegisterYearPicker(false)}
-    style={{
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.3)",
-      justifyContent: "center",
-      paddingHorizontal: 32,
-    }}
-  >
-    <View
-      style={{
-        backgroundColor: "#fff",
-        borderRadius: 12,
-        maxHeight: 300,
-      }}
-    >
-      <ScrollView>
-        {registerYears.map((year) => (
-          <TouchableOpacity
-            key={year}
-            onPress={() => {
-              setForm({ ...form, yearRegister: String(year) });
-              setShowRegisterYearPicker(false);
-            }}
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowRegisterYearPicker(false)}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.3)",
+            justifyContent: "center",
+            paddingHorizontal: 32,
+          }}
+        >
+          <View
             style={{
-              padding: 14,
-              borderBottomWidth: 0.5,
-              borderColor: COLORS.gray,
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              maxHeight: 300,
             }}
           >
-            <Text style={{ textAlign: "center" }}>{year}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </View>
-  </TouchableOpacity>
-)}
+            <ScrollView>
+              {registerYears.map((year) => (
+                <TouchableOpacity
+                  key={year}
+                  onPress={() => {
+                    setForm({ ...form, yearRegister: String(year) });
+                    setShowRegisterYearPicker(false);
+                  }}
+                  style={{
+                    padding: 14,
+                    borderBottomWidth: 0.5,
+                    borderColor: COLORS.gray,
+                  }}
+                >
+                  <Text style={{ textAlign: "center" }}>{year}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      )}
 
 
     </SafeAreaView>
