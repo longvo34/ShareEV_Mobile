@@ -21,58 +21,63 @@ export default function RequestListScreen({ navigation }) {
     fetchVehicles();
   }, []);
 
-  const fetchVehicles = async () => {
-    try {
-      setLoading(true);
-      const res = await getMyVehicles();
-      setVehicles(res.data.data || []);
-    } catch (error) {
-      console.log("❌ GET VEHICLES ERROR:", error);
-      setVehicles([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchVehicles = async () => {
+  try {
+    setLoading(true);
+    const res = await getMyVehicles();
+    setVehicles(res.data.data.items || []);
+  } catch (error) {
+    console.log("❌ GET VEHICLES ERROR:", error);
+    setVehicles([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const renderStatus = (status) => {
-    switch (status) {
-      case "PENDING":
-        return <Text style={[styles.status, styles.pending]}>Chờ duyệt</Text>;
-      case "REVIEW":
-        return <Text style={[styles.status, styles.review]}>Chờ kiểm định</Text>;
-      case "APPROVED":
-        return <Text style={[styles.status, styles.approved]}>Đã duyệt</Text>;
-      case "REJECTED":
-        return <Text style={[styles.status, styles.rejected]}>Từ chối</Text>;
-      default:
-        return null;
-    }
-  };
+  switch (status) {
+    case "PendingApproval":
+      return <Text style={[styles.status, styles.pending]}>Chờ duyệt</Text>;
+    case "Approved":
+      return <Text style={[styles.status, styles.approved]}>Đã duyệt</Text>;
+    case "Rejected":
+      return <Text style={[styles.status, styles.rejected]}>Từ chối</Text>;
+    default:
+      return null;
+  }
+};
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        navigation.navigate("VehicleDetail", {
-          vehicleId: item.vehicleId,
-        })
-      }
-    >
-      <View style={styles.cardHeader}>
-        <Text style={styles.carName}>
-          {item.vehicleModel?.vehicleBrand?.name}{" "}
-          {item.vehicleModel?.name}
-        </Text>
-        {renderStatus(item.status)}
-      </View>
+ const renderItem = ({ item }) => (
+  <TouchableOpacity
+  style={styles.card}
+  onPress={() =>
+  navigation.navigate("RegisterVehicle", {
+    screen: "VehicleDetail",
+    params: {
+      vehicleId: item.vehicleId,
+    },
+  })
+}
+>
 
-      <Text style={styles.date}>
-        📅 {new Date(item.createdAt).toLocaleDateString("vi-VN")}
+    <View style={styles.cardHeader}>
+      <Text style={styles.carName}>
+        {item.brandName} {item.modelName}
       </Text>
+      {renderStatus(item.vehicleStatus)}
+    </View>
 
-      {item.note && <Text style={styles.note}>ℹ️ {item.note}</Text>}
-    </TouchableOpacity>
-  );
+    <Text style={styles.date}>
+      📅 {new Date(item.createdDate).toLocaleDateString("vi-VN")}
+    </Text>
+
+    {item.licensePlate && (
+      <Text style={styles.note}>🚘 {item.licensePlate}</Text>
+    )}
+  </TouchableOpacity>
+);
+
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>

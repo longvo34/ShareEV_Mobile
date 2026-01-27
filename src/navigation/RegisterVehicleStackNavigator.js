@@ -5,6 +5,7 @@ import Step1BasicInfoScreen from "../screens/home/profile/registerVehicle/step1B
 import Step2TechnicalInfoScreen from "../screens/home/profile/registerVehicle/step2TechnicalInfo/Step2TechnicalInfoScreen";
 import Step3OwnerInfoScreen from "../screens/home/profile/registerVehicle/step3OwnerInfo/Step3OwnerInfoScreen";
 import Step4UploadDocsScreen from "../screens/home/profile/registerVehicle/step4UploadDocs/Step4UploadDocsScreen";
+import VehicleDetailScreen from "../screens/home/profile/registerVehicle/vehicleDetail/VehicleDetailScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,10 @@ export default function RegisterVehicleStackNavigator() {
       <Stack.Screen name="VehicleStep2" component={Step2TechnicalInfoScreen} />
       <Stack.Screen name="VehicleStep3" component={Step3OwnerInfoScreen} />
       <Stack.Screen name="VehicleStep4" component={Step4UploadDocsScreen} />
+      <Stack.Screen
+  name="VehicleDetail"
+  component={VehicleDetailScreen}
+/>
     </Stack.Navigator>
   );
 }
