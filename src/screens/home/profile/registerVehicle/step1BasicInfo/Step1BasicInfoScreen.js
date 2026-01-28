@@ -86,50 +86,80 @@ export default function Step1BasicInfoScreen({ navigation }) {
     : [];
 
   const onNext = () => {
-  if (!form.vehicleBrand) {
-    Alert.alert("Thiếu thông tin", "Vui lòng chọn hãng xe");
-    return;
-  }
+    if (!form.vehicleBrand) {
+      Alert.alert("Thiếu thông tin", "Vui lòng chọn hãng xe");
+      return;
+    }
 
-  if (!form.vehicleModel) {
-    Alert.alert("Thiếu thông tin", "Vui lòng chọn dòng xe");
-    return;
-  }
+    if (!form.vehicleModel) {
+      Alert.alert("Thiếu thông tin", "Vui lòng chọn dòng xe");
+      return;
+    }
 
-  if (!form.yearManufacture) {
-    Alert.alert("Thiếu thông tin", "Vui lòng chọn năm sản xuất");
-    return;
-  }
+    if (!form.yearManufacture) {
+      Alert.alert("Thiếu thông tin", "Vui lòng chọn năm sản xuất");
+      return;
+    }
 
-  if (!form.licensePlate) {
-    Alert.alert("Thiếu thông tin", "Vui lòng nhập biển số xe");
-    return;
-  }
+    if (!form.licensePlate) {
+      Alert.alert("Thiếu thông tin", "Vui lòng nhập biển số xe");
+      return;
+    }
 
-  if (!form.exteriorColor) {
-    Alert.alert("Thiếu thông tin", "Vui lòng nhập màu xe");
-    return;
-  }
+    if (!form.exteriorColor) {
+      Alert.alert("Thiếu thông tin", "Vui lòng nhập màu xe");
+      return;
+    }
 
-  navigation.navigate("VehicleStep4", {
-    step1Data: {
-      vehicleModelId: form.vehicleModel.vehicleModelId,
-      licensePlate: form.licensePlate,
-      color: form.exteriorColor,
-      year: Number(form.yearManufacture),
-      odometer: toNumberOrNull(form.odometer),
-      batteryHealth: toNumberOrNull(form.batteryHealth),
-      lastMaintenanceDate: form.lastMaintenanceDate || null,
-    },
-  });
-};
+
+    if (form.licensePlate.length < 5 || form.licensePlate.length > 20) {
+      Alert.alert(
+        "Thông tin không hợp lệ",
+        "Biển số xe phải từ 5 đến 20 ký tự"
+      );
+      return;
+    }
+
+
+    if (form.batteryHealth !== "") {
+      const batteryNum = Number(form.batteryHealth);
+
+      if (batteryNum < 0) {
+        Alert.alert(
+          "Thông tin không hợp lệ",
+          "Tình trạng pin không được âm"
+        );
+        return;
+      }
+
+      if (batteryNum > 100) {
+        Alert.alert(
+          "Thông tin không hợp lệ",
+          "Tình trạng pin không được vượt quá 100%"
+        );
+        return;
+      }
+    }
+
+    navigation.navigate("VehicleStep4", {
+      step1Data: {
+        vehicleModelId: form.vehicleModel.vehicleModelId,
+        licensePlate: form.licensePlate,
+        color: form.exteriorColor,
+        year: Number(form.yearManufacture),
+        odometer: toNumberOrNull(form.odometer),
+        batteryHealth: toNumberOrNull(form.batteryHealth),
+        lastMaintenanceDate: form.lastMaintenanceDate || null,
+      },
+    });
+  };
 
 
 
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color={COLORS.black} />
@@ -138,11 +168,11 @@ export default function Step1BasicInfoScreen({ navigation }) {
         <View style={{ width: 22 }} />
       </View>
 
-      {/* STEP */}
+
       <View style={styles.stepRow}>
         <View style={[styles.stepDot, styles.active]} />
         <View style={styles.stepDot} />
-       
+
       </View>
 
       <Text style={styles.stepText}>Bước 1/2</Text>
@@ -150,15 +180,14 @@ export default function Step1BasicInfoScreen({ navigation }) {
       <Text style={styles.sectionTitle}>Thông tin cơ bản của xe</Text>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* ===== BRAND ===== */}
+
         <Label text="Hãng xe" />
         <DropdownInput
           value={form.vehicleBrand?.name || "Chọn hãng xe"}
           onPress={() => setShowBrandModal(true)}
         />
 
-        {/* ===== MODEL ===== */}
-        {/* ===== MODEL ===== */}
+
         <Label text="Dòng xe" />
         <DropdownInput
           disabled={!form.vehicleBrand || !hasModels}
@@ -176,7 +205,7 @@ export default function Step1BasicInfoScreen({ navigation }) {
         />
 
 
-        {/* ===== OTHER FIELDS (GIỮ NGUYÊN) ===== */}
+
         <View style={styles.row2}>
           <View style={{ flex: 1 }}>
             <Label text="Năm sản xuất" />
@@ -221,31 +250,31 @@ export default function Step1BasicInfoScreen({ navigation }) {
             setForm({ ...form, exteriorColor: v })
           }
         />
-       <Label text="ODO (km đã đi)" />
-<Input
-  placeholder="Ví dụ: 25000"
-  keyboardType="number-pad"
-  value={form.odometer}
-  onChangeText={(v) => {
-    const cleaned = v.replace(/[^0-9]/g, "");
-    setForm({ ...form, odometer: cleaned });
-  }}
-/>
+        <Label text="ODO (km đã đi)" />
+        <Input
+          placeholder="Ví dụ: 25000"
+          keyboardType="number-pad"
+          value={form.odometer}
+          onChangeText={(v) => {
+            const cleaned = v.replace(/[^0-9]/g, "");
+            setForm({ ...form, odometer: cleaned });
+          }}
+        />
 
-       <Label text="Tình trạng pin (%)" />
-<Input
-  placeholder="Ví dụ: 90"
-  keyboardType="number-pad"
-  value={form.batteryHealth}
-  onChangeText={(v) => {
-    let cleaned = v.replace(/[^0-9]/g, "");
-    if (cleaned !== "") {
-      const num = Number(cleaned);
-      if (num > 100) cleaned = "100";
-    }
-    setForm({ ...form, batteryHealth: cleaned });
-  }}
-/>
+        <Label text="Tình trạng pin (%)" />
+        <Input
+          placeholder="Ví dụ: 90"
+          keyboardType="number-pad"
+          value={form.batteryHealth}
+          onChangeText={(v) => {
+            let cleaned = v.replace(/[^0-9]/g, "");
+            if (cleaned !== "") {
+              const num = Number(cleaned);
+              if (num > 100) cleaned = "100";
+            }
+            setForm({ ...form, batteryHealth: cleaned });
+          }}
+        />
         <Label text="Ngày bảo dưỡng gần nhất" />
 
         <TouchableOpacity
@@ -275,7 +304,7 @@ export default function Step1BasicInfoScreen({ navigation }) {
         <Text style={styles.nextText}>Tiếp tục →</Text>
       </TouchableOpacity>
 
-      {/* ================= BRAND MODAL ================= */}
+
       <SelectModal
         visible={showBrandModal}
         data={brands}
@@ -291,7 +320,7 @@ export default function Step1BasicInfoScreen({ navigation }) {
         }}
       />
 
-      {/* ================= MODEL MODAL ================= */}
+
       <SelectModal
         visible={showModelModal}
         data={filteredModels}
@@ -354,8 +383,8 @@ export default function Step1BasicInfoScreen({ navigation }) {
               : new Date()
           }
           mode="date"
-          display="spinner" // iOS: spinner / calendar | Android: default
-          maximumDate={new Date()} // không cho chọn ngày tương lai
+          display="spinner"
+          maximumDate={new Date()}
           onChange={(event, selectedDate) => {
             setShowMaintenancePicker(false);
             if (selectedDate) {
@@ -420,7 +449,7 @@ export default function Step1BasicInfoScreen({ navigation }) {
   );
 }
 
-/* ================= COMPONENT PHỤ ================= */
+
 
 function Label({ text }) {
   return <Text style={styles.label}>{text}</Text>;

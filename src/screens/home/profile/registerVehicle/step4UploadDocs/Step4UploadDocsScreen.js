@@ -17,46 +17,46 @@ import styles from "./Step4UploadDocsScreen.styles";
 export default function Step4UploadDocsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  
+
 
   const { step1Data } = route.params || {};
 
- 
+
   const [images, setImages] = useState([]);
-const MAX_IMAGES = 6;
+  const MAX_IMAGES = 6;
 
-const pickImage = async (index) => {
-  if (images.length >= MAX_IMAGES && !images[index]) return;
+  const pickImage = async (index) => {
+    if (images.length >= MAX_IMAGES && !images[index]) return;
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    quality: 0.7,
-  });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
 
-  if (!result.canceled) {
-    const newImages = [...images];
-    newImages[index] = result.assets[0];
-    setImages(newImages.filter(Boolean));
-  }
-};
+    if (!result.canceled) {
+      const newImages = [...images];
+      newImages[index] = result.assets[0];
+      setImages(newImages.filter(Boolean));
+    }
+  };
 
-const onSubmit = async () => {
-  try {
-    navigation.navigate("ContractScreen", {
-  step1Data,
-  images,
-});
-  } catch (e) {
-    Alert.alert("Lỗi", "Không thể đăng ký xe");
-  }
-};
+  const onSubmit = async () => {
+    try {
+      navigation.navigate("ContractScreen", {
+        step1Data,
+        images,
+      });
+    } catch (e) {
+      Alert.alert("Lỗi", "Không thể đăng ký xe");
+    }
+  };
 
 
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* HEADER */}
+
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backBtn}
@@ -68,7 +68,7 @@ const onSubmit = async () => {
           <View style={{ width: 22 }} />
         </View>
 
-        {/* STEP */}
+
         <View style={styles.stepRow}>
           <View style={[styles.stepDot, styles.active]} />
           <View style={[styles.stepDot, styles.active]} />
@@ -80,40 +80,40 @@ const onSubmit = async () => {
           Tải tối đa {MAX_IMAGES} hình (ngoại thất & nội thất)
         </Text>
 
-        {/* IMAGE GRID */}
-       <View style={styles.imageGrid}>
-  {Array.from({ length: MAX_IMAGES }).map((_, index) => {
-    const img = images[index];
 
-    return (
-      <TouchableOpacity
-        key={index}
-        style={styles.imageBox}
-        onPress={() => pickImage(index)}
-      >
-        {img ? (
-          <Image
-            source={{ uri: img.uri }}
-            style={{ width: "100%", height: "100%", borderRadius: 8 }}
-          />
-        ) : (
-          <Ionicons name="camera" size={26} color={COLORS.gray} />
-        )}
-      </TouchableOpacity>
-    );
-  })}
-</View>
+        <View style={styles.imageGrid}>
+          {Array.from({ length: MAX_IMAGES }).map((_, index) => {
+            const img = images[index];
 
-<Text style={styles.imageCount}>
-  {images.length}/{MAX_IMAGES} hình
-</Text>
+            return (
+              <TouchableOpacity
+                key={index}
+                style={styles.imageBox}
+                onPress={() => pickImage(index)}
+              >
+                {img ? (
+                  <Image
+                    source={{ uri: img.uri }}
+                    style={{ width: "100%", height: "100%", borderRadius: 8 }}
+                  />
+                ) : (
+                  <Ionicons name="camera" size={26} color={COLORS.gray} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <Text style={styles.imageCount}>
+          {images.length}/{MAX_IMAGES} hình
+        </Text>
 
 
-        {/* SUBMIT */}
+
         <View style={styles.footerCenter}>
-         <TouchableOpacity style={styles.nextBtn} onPress={onSubmit}>
-  <Text style={styles.nextText}>Gửi thông tin xe →</Text>
-</TouchableOpacity>
+          <TouchableOpacity style={styles.nextBtn} onPress={onSubmit}>
+            <Text style={styles.nextText}>Gửi thông tin xe →</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

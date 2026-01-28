@@ -1,11 +1,13 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -19,6 +21,11 @@ export default function VehicleDetailScreen({ route, navigation }) {
 
   const [loading, setLoading] = useState(true);
   const [vehicle, setVehicle] = useState(null);
+
+
+  const flatListRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const { width } = Dimensions.get("window");
 
   useEffect(() => {
     fetchVehicleDetail();
@@ -36,6 +43,27 @@ export default function VehicleDetailScreen({ route, navigation }) {
     }
   };
 
+
+  useEffect(() => {
+    if (!vehicle?.images?.length) return;
+
+    const interval = setInterval(() => {
+      const nextIndex =
+        currentIndex === vehicle.images.length - 1
+          ? 0
+          : currentIndex + 1;
+
+      flatListRef.current?.scrollToIndex({
+        index: nextIndex,
+        animated: true,
+      });
+
+      setCurrentIndex(nextIndex);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [currentIndex, vehicle?.images]);
+
   if (loading) return <EVLoading />;
 
   if (!vehicle) {
@@ -48,7 +76,7 @@ export default function VehicleDetailScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color={COLORS.text} />
@@ -58,18 +86,72 @@ export default function VehicleDetailScreen({ route, navigation }) {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* IMAGE */}
-        {vehicle.images?.length > 0 && (
-          <Image
-            source={{ uri: vehicle.images[0].secureUrl }}
-            style={styles.image}
-          />
+
+        {vehicle.images?.length > 0 ? (
+          <>
+            <FlatList
+              ref={flatListRef}
+              data={vehicle.images}
+              keyExtractor={(_, index) => index.toString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => {
+                const index = Math.round(
+                  e.nativeEvent.contentOffset.x / width
+                );
+                setCurrentIndex(index);
+              }}
+              renderItem={({ item }) => (
+                <Image
+                  source={{ uri: item.secureUrl }}
+                  style={{
+                    width,
+                    height: 220,
+                  }}
+                  resizeMode="cover"
+                />
+              )}
+            />
+
+
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                marginTop: 8,
+              }}
+            >
+              {vehicle.images.map((_, index) => (
+                <View
+                  key={index}
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor:
+                      index === currentIndex
+                        ? COLORS.primary
+                        : "#ccc",
+                    marginHorizontal: 4,
+                  }}
+                />
+              ))}
+            </View>
+          </>
+        ) : (
+          <View style={styles.noImagePlaceholder}>
+            <Text style={{ color: COLORS.gray, fontSize: 16 }}>
+              Chưa có ảnh xe
+            </Text>
+          </View>
         )}
 
-        {/* BASIC INFO */}
+
         <View style={styles.card}>
           <Text style={styles.title}>
-            {vehicle.vehicleModel.brandName} {vehicle.vehicleModel.name}
+            {vehicle.vehicleModel.brandName}{" "}
+            {vehicle.vehicleModel.name}
           </Text>
 
           <Text style={styles.status}>
@@ -77,7 +159,7 @@ export default function VehicleDetailScreen({ route, navigation }) {
           </Text>
         </View>
 
-        {/* DETAIL */}
+
         <View style={styles.card}>
           <DetailRow label="Biển số" value={vehicle.licensePlate} />
           <DetailRow label="Màu sắc" value={vehicle.color} />
@@ -93,9 +175,9 @@ export default function VehicleDetailScreen({ route, navigation }) {
           />
           <DetailRow
             label="Ngày bảo dưỡng"
-            value={new Date(vehicle.lastMaintenanceDate).toLocaleDateString(
-              "vi-VN"
-            )}
+            value={new Date(
+              vehicle.lastMaintenanceDate
+            ).toLocaleDateString("vi-VN")}
           />
         </View>
       </ScrollView>

@@ -10,7 +10,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import EVLoading from "../../../../../components/animation/EVLoading";
 import COLORS from "../../../../../constants/colors";
-import { getMyVehicles } from "../../../../../services/vehicle/vehicle.service";
+import { getProfileMember } from "../../../../../services/profile/profile.service";
+import { getVehiclesByMemberId } from "../../../../../services/vehicle/vehicle.service";
 import styles from "./RequestListScreen.styles";
 
 export default function RequestListScreen({ navigation }) {
@@ -24,8 +25,15 @@ export default function RequestListScreen({ navigation }) {
  const fetchVehicles = async () => {
   try {
     setLoading(true);
-    const res = await getMyVehicles();
-    setVehicles(res.data.data.items || []);
+
+    // 1. lấy memberId từ token
+    const memberRes = await getProfileMember();
+    const memberId = memberRes.data.memberId;
+
+    // 2. lấy xe theo memberId
+    const vehicleRes = await getVehiclesByMemberId(memberId);
+
+    setVehicles(vehicleRes.data.data || vehicleRes.data || []);
   } catch (error) {
     console.log("❌ GET VEHICLES ERROR:", error);
     setVehicles([]);
@@ -33,6 +41,7 @@ export default function RequestListScreen({ navigation }) {
     setLoading(false);
   }
 };
+
 
 
   const renderStatus = (status) => {
