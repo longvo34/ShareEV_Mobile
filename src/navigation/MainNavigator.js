@@ -41,9 +41,20 @@ export default function MainNavigator({ setIsLoggedIn }) {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Vehicle" component={MyVehicleScreen} />
         <Tab.Screen name="History" component={HistoryScreen} />
-        <Tab.Screen name="Profile">
-          {(props) => <ProfileStack {...props} setIsLoggedIn={setIsLoggedIn} />}
-        </Tab.Screen>
+        <Tab.Screen
+  name="Profile"
+  listeners={({ navigation }) => ({
+    tabPress: (e) => {
+      e.preventDefault();
+
+      navigation.navigate("Profile", {
+        screen: "ProfileMain",
+      });
+    },
+  })}
+>
+  {(props) => <ProfileStack {...props} setIsLoggedIn={setIsLoggedIn} />}
+</Tab.Screen>
       </Tab.Navigator>
     </SafeAreaView>
   );
