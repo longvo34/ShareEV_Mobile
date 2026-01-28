@@ -1,4 +1,5 @@
 import api from "../api";
+import { getProfileMember } from "../profile/profile.service";
 
 export const getMyVehicles = (params = {}) => {
   return api.get("/vehicles/pagination", {
@@ -17,11 +18,16 @@ export const getVehicleById = (vehicleId) => {
   return api.get(`/vehicles/${vehicleId}`);
 };
 
-export const createVehicleWithImages = (data, images = []) => {
+export const createVehicleWithImages = async (data, images = []) => {
   const formData = new FormData();
 
-  // ====== TEXT FIELDS ======
+ 
+  const memberRes = await getProfileMember();
+  const memberId = memberRes.data.memberId;
+
+
   formData.append("VehicleModelId", data.vehicleModelId);
+  formData.append("MemberId", memberId); 
   formData.append("LicensePlate", data.licensePlate);
   formData.append("Color", data.color);
   formData.append("Year", String(data.year));
@@ -35,7 +41,6 @@ export const createVehicleWithImages = (data, images = []) => {
   if (data.lastMaintenanceDate)
     formData.append("LastMaintenanceDate", data.lastMaintenanceDate);
 
-  // ====== IMAGES ======
   images.forEach((img, index) => {
     formData.append("images", {
       uri: img.uri,
@@ -49,4 +54,8 @@ export const createVehicleWithImages = (data, images = []) => {
       "Content-Type": "multipart/form-data",
     },
   });
+};
+
+export const getVehiclesByMemberId = (memberId) => {
+  return api.get(`/vehicles/by-member/${memberId}`);
 };

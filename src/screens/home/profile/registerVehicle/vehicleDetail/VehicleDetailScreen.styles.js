@@ -52,4 +52,11 @@ export default StyleSheet.create({
     color: COLORS.text,
     fontWeight: "500",
   },
+  noImagePlaceholder: {
+    height: 220,
+    backgroundColor: "#eee",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
 });
