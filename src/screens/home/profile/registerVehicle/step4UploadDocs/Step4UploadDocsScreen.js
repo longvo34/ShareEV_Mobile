@@ -12,7 +12,6 @@ import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Alert, Image } from "react-native";
 import COLORS from "../../../../../constants/colors";
-import { createVehicleWithImages } from "../../../../../services/vehicle/vehicle.service";
 import styles from "./Step4UploadDocsScreen.styles";
 
 export default function Step4UploadDocsScreen() {
@@ -42,29 +41,16 @@ const pickImage = async (index) => {
 };
 
 const onSubmit = async () => {
-  if (images.length === 0) {
-    Alert.alert("Thiếu hình ảnh", "Vui lòng tải ít nhất 1 hình xe");
-    return;
-  }
-
   try {
-    await createVehicleWithImages(step1Data, images);
-
-    Alert.alert("Thành công", "Đăng ký xe thành công", [
-      {
-        text: "OK",
-        onPress: () =>
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "VehicleRequestList" }],
-          }),
-      },
-    ]);
+    navigation.navigate("ContractScreen", {
+  step1Data,
+  images,
+});
   } catch (e) {
-    console.log("❌ CREATE VEHICLE ERROR:", e.response?.data || e);
     Alert.alert("Lỗi", "Không thể đăng ký xe");
   }
 };
+
 
 
   return (
