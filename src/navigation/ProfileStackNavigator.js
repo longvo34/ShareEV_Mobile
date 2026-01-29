@@ -13,16 +13,12 @@ export default function ProfileStack({ setIsLoggedIn }) {
       <Stack.Screen name="ProfileMain">
         {(props) => <ProfileScreen {...props} setIsLoggedIn={setIsLoggedIn} />}
       </Stack.Screen>
-
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
-
       <Stack.Screen name="EKYC" component={EKYCScreen} />
-
       <Stack.Screen
         name="RegisterVehicle"
         component={RegisterVehicleStackNavigator}
       />
-
       <Stack.Screen name="ChangePassword">
         {(props) => (
           <ChangePasswordScreen {...props} setIsLoggedIn={setIsLoggedIn} />

@@ -51,8 +51,6 @@ export default function Step4UploadDocsScreen() {
     }
   };
 
-
-
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -67,8 +65,6 @@ export default function Step4UploadDocsScreen() {
           <Text style={styles.headerTitle}>Đăng ký xe</Text>
           <View style={{ width: 22 }} />
         </View>
-
-
         <View style={styles.stepRow}>
           <View style={[styles.stepDot, styles.active]} />
           <View style={[styles.stepDot, styles.active]} />
@@ -79,7 +75,6 @@ export default function Step4UploadDocsScreen() {
         <Text style={styles.subTitle}>
           Tải tối đa {MAX_IMAGES} hình (ngoại thất & nội thất)
         </Text>
-
 
         <View style={styles.imageGrid}>
           {Array.from({ length: MAX_IMAGES }).map((_, index) => {
@@ -107,9 +102,6 @@ export default function Step4UploadDocsScreen() {
         <Text style={styles.imageCount}>
           {images.length}/{MAX_IMAGES} hình
         </Text>
-
-
-
         <View style={styles.footerCenter}>
           <TouchableOpacity style={styles.nextBtn} onPress={onSubmit}>
             <Text style={styles.nextText}>Gửi thông tin xe →</Text>

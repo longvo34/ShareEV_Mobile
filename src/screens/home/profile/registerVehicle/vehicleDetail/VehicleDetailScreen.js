@@ -147,7 +147,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
           </View>
         )}
 
-
         <View style={styles.card}>
           <Text style={styles.title}>
             {vehicle.vehicleModel.brandName}{" "}

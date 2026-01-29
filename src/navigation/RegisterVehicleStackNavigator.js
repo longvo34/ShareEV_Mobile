@@ -19,10 +19,10 @@ export default function RegisterVehicleStackNavigator() {
       <Stack.Screen name="VehicleStep3" component={Step3OwnerInfoScreen} />
       <Stack.Screen name="VehicleStep4" component={Step4UploadDocsScreen} />
       <Stack.Screen
-  name="VehicleDetail"
-  component={VehicleDetailScreen}
-/>
-<Stack.Screen name="ContractScreen" component={ContractScreen} />
+        name="VehicleDetail"
+        component={VehicleDetailScreen}
+      />
+      <Stack.Screen name="ContractScreen" component={ContractScreen} />
     </Stack.Navigator>
   );
 }
