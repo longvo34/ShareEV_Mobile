@@ -111,7 +111,6 @@ export default function Step1BasicInfoScreen({ navigation }) {
       return;
     }
 
-
     if (form.licensePlate.length < 5 || form.licensePlate.length > 20) {
       Alert.alert(
         "Thông tin không hợp lệ",
@@ -119,7 +118,6 @@ export default function Step1BasicInfoScreen({ navigation }) {
       );
       return;
     }
-
 
     if (form.batteryHealth !== "") {
       const batteryNum = Number(form.batteryHealth);
@@ -154,12 +152,8 @@ export default function Step1BasicInfoScreen({ navigation }) {
     });
   };
 
-
-
-
   return (
     <SafeAreaView style={styles.container}>
-
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} color={COLORS.black} />
@@ -167,7 +161,6 @@ export default function Step1BasicInfoScreen({ navigation }) {
         <Text style={styles.headerTitle}>Đăng ký xe</Text>
         <View style={{ width: 22 }} />
       </View>
-
 
       <View style={styles.stepRow}>
         <View style={[styles.stepDot, styles.active]} />
@@ -186,8 +179,6 @@ export default function Step1BasicInfoScreen({ navigation }) {
           value={form.vehicleBrand?.name || "Chọn hãng xe"}
           onPress={() => setShowBrandModal(true)}
         />
-
-
         <Label text="Dòng xe" />
         <DropdownInput
           disabled={!form.vehicleBrand || !hasModels}
@@ -204,13 +195,9 @@ export default function Step1BasicInfoScreen({ navigation }) {
           }}
         />
 
-
-
         <View style={styles.row2}>
           <View style={{ flex: 1 }}>
             <Label text="Năm sản xuất" />
-
-
             <TouchableOpacity
               style={styles.input}
               onPress={() => setShowYearPicker(true)}
@@ -223,15 +210,8 @@ export default function Step1BasicInfoScreen({ navigation }) {
                 {form.yearManufacture || "Chọn năm"}
               </Text>
             </TouchableOpacity>
-
           </View>
-
-
-
-
         </View>
-
-
 
         <Label text="Biển số xe" />
         <Input
@@ -291,10 +271,6 @@ export default function Step1BasicInfoScreen({ navigation }) {
               : "Chọn ngày"}
           </Text>
         </TouchableOpacity>
-
-
-
-
       </ScrollView>
 
       <TouchableOpacity
@@ -319,7 +295,6 @@ export default function Step1BasicInfoScreen({ navigation }) {
           setShowBrandModal(false);
         }}
       />
-
 
       <SelectModal
         visible={showModelModal}
@@ -397,9 +372,6 @@ export default function Step1BasicInfoScreen({ navigation }) {
         />
       )}
 
-
-
-
       {showRegisterYearPicker && (
         <TouchableOpacity
           activeOpacity={1}
@@ -448,8 +420,6 @@ export default function Step1BasicInfoScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
-
 
 function Label({ text }) {
   return <Text style={styles.label}>{text}</Text>;
