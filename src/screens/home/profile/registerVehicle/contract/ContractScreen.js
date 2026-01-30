@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Text,
   TextInput,
@@ -12,12 +13,12 @@ import {
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
+import COLORS from "../../../../../constants/colors";
 import {
   createContract,
   sendContractVerification,
-  verifyContractSignature
+  verifyContractSignature,
 } from "../../../../../services/contract/contract.service";
-import { createVehicleWithImages } from "../../../../../services/vehicle/vehicle.service";
 import { getAccessToken } from "../../../../../utils/authStorage";
 import styles from "./ContractScreen.styles";
 
@@ -25,11 +26,22 @@ export default function ContractScreen() {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const { step1Data, images } = route.params || {};
+  const { vehicleId } = route.params || {}; // Chỉ nhận vehicleId từ luồng mới
 
   const [contractId, setContractId] = useState(null);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Kiểm tra vehicleId ngay từ đầu
+  if (!vehicleId) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ color: "red", textAlign: "center", marginTop: 50 }}>
+          Không tìm thấy thông tin xe. Vui lòng thử lại từ danh sách.
+        </Text>
+      </View>
+    );
+  }
 
   const createRegisterContract = async () => {
     try {
@@ -40,14 +52,10 @@ export default function ContractScreen() {
         contractType: 1,
         title: "Hợp đồng đăng ký xe",
         description: "Hợp đồng đăng ký xe cho phương tiện",
+        vehicleId, // Nếu backend cần liên kết với vehicleId
       };
-      console.log("[CREATE CONTRACT] Payload gửi lên:", payload);
 
       const res = await createContract(payload);
-
-      console.log("[CREATE CONTRACT] Response từ server:", res);
-      console.log("[CREATE CONTRACT] Response data chi tiết:", JSON.stringify(res.data, null, 2));
-
       const newContractId = res.data?.data?.contractId;
 
       if (!newContractId) {
@@ -55,14 +63,10 @@ export default function ContractScreen() {
       }
 
       setContractId(newContractId);
-      console.log("[CREATE CONTRACT] Thành công! Contract ID được set:", newContractId);
-
       Alert.alert("Thành công", "Đã tạo hợp đồng");
     } catch (e) {
       console.error("[CREATE CONTRACT] LỖI:", e);
-      console.error("[CREATE CONTRACT] Response lỗi (nếu có):", e.response?.data || e.message);
-
-      Alert.alert("Lỗi", "Không tạo được hợp đồng. Vui lòng kiểm tra console để xem chi tiết.");
+      Alert.alert("Lỗi", "Không tạo được hợp đồng");
     } finally {
       setLoading(false);
     }
@@ -76,24 +80,16 @@ export default function ContractScreen() {
 
     try {
       setLoading(true);
-
       const token = await getAccessToken();
-
       const fileName = `Hop-dong-dang-ky-xe_${contractId}.pdf`;
       const fileUri = FileSystem.documentDirectory + fileName;
 
       const API_URL = Constants.expoConfig.extra.API_URL;
       const downloadUrl = `${API_URL}/contracts/${contractId}/pdf`;
 
-      const { uri } = await FileSystem.downloadAsync(
-        downloadUrl,
-        fileUri,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const { uri } = await FileSystem.downloadAsync(downloadUrl, fileUri, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!(await Sharing.isAvailableAsync())) {
         Alert.alert("Không hỗ trợ", "Thiết bị không hỗ trợ mở file PDF");
@@ -107,13 +103,15 @@ export default function ContractScreen() {
       });
     } catch (e) {
       console.error("[OPEN PDF] LỖI:", e);
-      Alert.alert("Lỗi", "Không thể tải hợp đồng. Kiểm tra console.");
+      Alert.alert("Lỗi", "Không thể tải hợp đồng");
     } finally {
       setLoading(false);
     }
   };
 
   const sendOtp = async () => {
+    if (!contractId) return;
+
     try {
       await sendContractVerification(contractId);
       Alert.alert("OTP", "Mã OTP đã được gửi về email");
@@ -129,51 +127,43 @@ export default function ContractScreen() {
       return;
     }
 
+    if (!contractId) {
+      Alert.alert("Lỗi", "Vui lòng tạo hợp đồng trước");
+      return;
+    }
+
     try {
       setLoading(true);
-
-      console.log("🔐 VERIFY CONTRACT OTP:", {
-        contractId,
-        otp,
-      });
 
       await verifyContractSignature(contractId, otp);
       console.log("✅ VERIFY CONTRACT SUCCESS");
 
-      console.log("🚗 CREATE VEHICLE PAYLOAD:", {
-        step1Data,
-        images,
-      });
-
-      await createVehicleWithImages(step1Data, images);
-      console.log("✅ CREATE VEHICLE SUCCESS");
-
       Alert.alert(
         "Thành công",
-        "Hợp đồng đã được ký và xe đã được đăng ký"
-      );
-
-      navigation.reset({
-        index: 0,
-        routes: [
+        "Hợp đồng đã được ký thành công!",
+        [
           {
-            name: "RegisterVehicle",
-            state: {
-              index: 0,
-              routes: [{ name: "VehicleRequestList" }],
+            text: "OK",
+            onPress: () => {
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: "RegisterVehicle",
+                    state: {
+                      index: 0,
+                      routes: [{ name: "VehicleRequestList" }],
+                    },
+                  },
+                ],
+              });
             },
           },
-        ],
-      });
-    } catch (e) {
-      console.error("❌ ERROR STATUS:", e.response?.status);
-      console.error("❌ ERROR DATA:", e.response?.data);
-      console.error("❌ ERROR MESSAGE:", e.message);
-
-      Alert.alert(
-        "Lỗi",
-        e.response?.data?.message || "Ký hợp đồng hoặc đăng ký xe thất bại"
+        ]
       );
+    } catch (e) {
+      console.error("❌ VERIFY ERROR:", e);
+      Alert.alert("Lỗi", e.response?.data?.message || "Ký hợp đồng thất bại");
     } finally {
       setLoading(false);
     }
@@ -188,11 +178,17 @@ export default function ContractScreen() {
         <Text style={styles.title}>Hợp đồng đăng ký xe</Text>
       </View>
 
-      {!contractId && (
+      {loading && (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      )}
+
+      {!loading && !contractId && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Tạo hợp đồng</Text>
           <Text style={styles.description}>
-            Vui lòng tạo hợp đồng để tiếp tục đăng ký xe
+            Vui lòng tạo hợp đồng để tiến hành ký cho xe
           </Text>
 
           <TouchableOpacity
@@ -207,7 +203,7 @@ export default function ContractScreen() {
         </View>
       )}
 
-      {contractId && (
+      {!loading && contractId && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hợp đồng đã tạo</Text>
 
@@ -224,6 +220,7 @@ export default function ContractScreen() {
           <TouchableOpacity
             style={styles.secondaryButton}
             onPress={sendOtp}
+            disabled={loading}
           >
             <Text style={styles.secondaryButtonText}>
               📨 Gửi OTP ký hợp đồng
@@ -244,7 +241,7 @@ export default function ContractScreen() {
             disabled={loading}
           >
             <Text style={styles.primaryButtonText}>
-              {loading ? "Đang xử lý..." : "✅ Xác nhận ký hợp đồng và đăng ký xe"}
+              {loading ? "Đang xử lý..." : "✅ Xác nhận ký hợp đồng"}
             </Text>
           </TouchableOpacity>
         </View>
