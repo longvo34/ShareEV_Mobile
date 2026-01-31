@@ -67,3 +67,13 @@ export const updateVehicle = (vehicleId, updateData) => {
 export const deleteVehicle = (vehicleId) => {
   return api.delete(`/vehicles/${vehicleId}`);
 };
+
+export const updateVehicleStatus = (vehicleId, status) => {
+  return api.patch(
+    `/vehicles/${vehicleId}/status`,
+    null,
+    {
+      params: { status },
+    }
+  );
+};

@@ -68,7 +68,7 @@ export default function Step4UploadDocsScreen() {
 
       Alert.alert(
         "Thành công",
-        "Đã xác nhận thông tin, vui lòng đem xe ra station gần nhất để tiến hành bước tiếp theo",
+        "Xe của bạn sẽ được chờ duyệt",
         [
           {
             text: "OK",
