@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -13,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import EVLoading from "../../../../../components/animation/EVLoading";
 import COLORS from "../../../../../constants/colors";
-import { getVehicleById } from "../../../../../services/vehicle/vehicle.service";
+import { deleteVehicle, getVehicleById } from "../../../../../services/vehicle/vehicle.service"; // ← Thêm deleteVehicle
 import styles from "./VehicleDetailScreen.styles";
 
 export default function VehicleDetailScreen({ route, navigation }) {
@@ -34,7 +35,7 @@ export default function VehicleDetailScreen({ route, navigation }) {
     try {
       setLoading(true);
       const res = await getVehicleById(vehicleId);
-      setVehicle(res.data.data);  // ← Giữ nguyên data thật từ API, không mock nữa
+      setVehicle(res.data.data);
     } catch (error) {
       console.log("❌ GET VEHICLE DETAIL ERROR:", error);
       setVehicle(null);
@@ -80,6 +81,31 @@ export default function VehicleDetailScreen({ route, navigation }) {
       default:
         return <Text style={{ color: COLORS.gray }}>Không xác định</Text>;
     }
+  };
+
+  // Hàm xử lý hủy xe
+  const handleDeleteVehicle = () => {
+    Alert.alert(
+      "Xác nhận hủy",
+      "Bạn có chắc chắn muốn hủy đăng ký xe này? Hành động không thể hoàn tác.",
+      [
+        { text: "Không", style: "cancel" },
+        {
+          text: "Có, hủy xe",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteVehicle(vehicleId);
+              Alert.alert("Thành công", "Xe đã được hủy thành công");
+              navigation.goBack(); // Quay về danh sách xe
+            } catch (error) {
+              console.error("Hủy xe lỗi:", error);
+              Alert.alert("Lỗi", "Không thể hủy xe. Vui lòng thử lại sau.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (loading) return <EVLoading />;
@@ -153,7 +179,7 @@ export default function VehicleDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Card tên xe + trạng thái + nút ký */}
+        {/* Card tên xe + trạng thái + nút ký + nút hủy */}
         <View style={styles.card}>
           <Text style={styles.title}>
             {vehicle.vehicleModel?.brandName} {vehicle.vehicleModel?.name}
@@ -181,6 +207,22 @@ export default function VehicleDetailScreen({ route, navigation }) {
               <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
                 Ký hợp đồng ngay →
               </Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Nút hủy xe - chỉ hiển thị khi xe ở trạng thái cho phép hủy */}
+          {["ReadyForInspection", "Signing", "Rejected", "PendingApproval"].includes(vehicle.vehicleStatus) && (
+            <TouchableOpacity
+              style={{
+                marginTop: 12,
+                backgroundColor: "#ef4444",
+                paddingVertical: 10,
+                borderRadius: 8,
+                alignItems: "center",
+              }}
+              onPress={handleDeleteVehicle}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>Hủy đăng ký xe</Text>
             </TouchableOpacity>
           )}
 
