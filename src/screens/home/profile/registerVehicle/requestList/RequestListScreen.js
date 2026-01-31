@@ -47,33 +47,31 @@ export default function RequestListScreen({ navigation }) {
   };
 
   const renderStatus = (status) => {
-    switch (status) {
-      case "ReadyForInspection":
-        return (
-          <Text style={[styles.status, { color: "#f59e0b", fontWeight: "600" }]}>
-            Chờ duyệt
-          </Text>
-        );
-      case "Signing":
-        return (
-          <Text style={[styles.status, { color: COLORS.signingGreen, fontWeight: "bold" }]}>
-            Sẵn sàng ký hợp đồng
-          </Text>
-        );
-      case "Approved":
-      case "SaleEligible":
-      case "Active":
-        return <Text style={[styles.status, styles.approved]}>Đã duyệt / Có thể bán</Text>;
-      case "Rejected":
-        return <Text style={[styles.status, styles.rejected]}>Từ chối</Text>;
-      case "Maintenance":
-        return <Text style={[styles.status, { color: "#d97706" }]}>Bảo dưỡng</Text>;
-      case "Decommissioned":
-        return <Text style={[styles.status, { color: "#6b7280" }]}>Ngừng hoạt động</Text>;
-      default:
-        return <Text style={styles.status}>Không xác định ({status})</Text>;
-    }
-  };
+  switch (status) {
+    case "Pending":
+      return <Text style={{ color: "#d97706", fontWeight: "600" }}>Chờ duyệt</Text>;
+
+    case "ReadyForInspection":
+      return <Text style={{ color: "#f59e0b", fontWeight: "600" }}>Sẵn sàng kiểm tra tại station</Text>;
+
+    case "Inspecting":
+      return <Text style={{ color: "#8b5cf6", fontWeight: "600" }}>Đang kiểm tra tại station</Text>;
+
+    case "SigningContract":
+      return <Text style={{ color: "#2563eb", fontWeight: "bold" }}>Sẵn sàng ký hợp đồng</Text>;
+
+    case "SaleEligible":
+      return <Text style={{ color: COLORS.signingGreen, fontWeight: "bold" }}>Đã duyệt / Có thể bán</Text>;
+
+    case "Rejected":
+      return <Text style={{ color: "#ef4444", fontWeight: "bold" }}>Từ chối</Text>;
+
+
+    default:
+      return <Text style={{ color: COLORS.gray }}>Không xác định ({status})</Text>;
+  }
+};
+     
 
   const renderItem = ({ item }) => (
     <TouchableOpacity

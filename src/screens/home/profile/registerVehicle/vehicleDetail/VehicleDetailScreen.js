@@ -12,9 +12,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ← Thêm import này
 import EVLoading from "../../../../../components/animation/EVLoading";
 import COLORS from "../../../../../constants/colors";
-import { deleteVehicle, getVehicleById } from "../../../../../services/vehicle/vehicle.service"; // ← Thêm deleteVehicle
+import { deleteVehicle, getVehicleById } from "../../../../../services/vehicle/vehicle.service";
 import styles from "./VehicleDetailScreen.styles";
 
 export default function VehicleDetailScreen({ route, navigation }) {
@@ -22,6 +23,7 @@ export default function VehicleDetailScreen({ route, navigation }) {
 
   const [loading, setLoading] = useState(true);
   const [vehicle, setVehicle] = useState(null);
+  const [hasSignedLocally, setHasSignedLocally] = useState(false); // ← Thêm state check flag
 
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -30,6 +32,15 @@ export default function VehicleDetailScreen({ route, navigation }) {
   useEffect(() => {
     fetchVehicleDetail();
   }, []);
+
+  // Check flag "đã ký" từ AsyncStorage
+  useEffect(() => {
+    const checkSigned = async () => {
+      const signed = await AsyncStorage.getItem(`signed_vehicle_${vehicleId}`);
+      setHasSignedLocally(signed === 'true');
+    };
+    checkSigned();
+  }, [vehicleId]);
 
   const fetchVehicleDetail = async () => {
     try {
@@ -59,31 +70,31 @@ export default function VehicleDetailScreen({ route, navigation }) {
     return () => clearInterval(interval);
   }, [currentIndex, vehicle?.images]);
 
-  // Hàm render trạng thái đẹp
   const renderStatus = (status) => {
     switch (status) {
-      case "PendingApproval":
-        return <Text style={{ color: "#d97706", fontWeight: "600" }}>Chờ duyệt</Text>;
-      case "Approved":
-      case "SaleEligible":
-      case "Active":
-        return <Text style={{ color: COLORS.signingGreen, fontWeight: "bold" }}>Đã duyệt / Hoạt động</Text>;
-      case "Rejected":
-        return <Text style={{ color: "#ef4444", fontWeight: "bold" }}>Từ chối</Text>;
+      case "Pending":
+        return <Text style={{ color: "#d97706", fontWeight: "600" }}>Xe đang chờ được duyệt</Text>;
+
       case "ReadyForInspection":
         return <Text style={{ color: "#f59e0b", fontWeight: "600" }}>Sẵn sàng kiểm tra tại station</Text>;
-      case "Signing":
+
+      case "Inspecting":
+        return <Text style={{ color: "#8b5cf6", fontWeight: "600" }}>Đang kiểm tra tại station</Text>;
+
+      case "SigningContract":
         return <Text style={{ color: "#2563eb", fontWeight: "bold" }}>Sẵn sàng ký hợp đồng</Text>;
-      case "Maintenance":
-        return <Text style={{ color: "#d97706" }}>Bảo dưỡng</Text>;
-      case "Decommissioned":
-        return <Text style={{ color: "#6b7280" }}>Ngừng hoạt động</Text>;
+
+      case "SaleEligible":
+        return <Text style={{ color: COLORS.signingGreen, fontWeight: "bold" }}>Đã duyệt / Có thể bán</Text>;
+
+      case "Rejected":
+        return <Text style={{ color: "#ef4444", fontWeight: "bold" }}>Từ chối</Text>;
+
       default:
-        return <Text style={{ color: COLORS.gray }}>Không xác định</Text>;
+        return <Text style={{ color: COLORS.gray }}>Không xác định ({status})</Text>;
     }
   };
 
-  // Hàm xử lý hủy xe
   const handleDeleteVehicle = () => {
     Alert.alert(
       "Xác nhận hủy",
@@ -97,7 +108,7 @@ export default function VehicleDetailScreen({ route, navigation }) {
             try {
               await deleteVehicle(vehicleId);
               Alert.alert("Thành công", "Xe đã được hủy thành công");
-              navigation.goBack(); // Quay về danh sách xe
+              navigation.goBack();
             } catch (error) {
               console.error("Hủy xe lỗi:", error);
               Alert.alert("Lỗi", "Không thể hủy xe. Vui lòng thử lại sau.");
@@ -179,7 +190,7 @@ export default function VehicleDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Card tên xe + trạng thái + nút ký + nút hủy */}
+        {/* Card tên xe + trạng thái */}
         <View style={styles.card}>
           <Text style={styles.title}>
             {vehicle.vehicleModel?.brandName} {vehicle.vehicleModel?.name}
@@ -190,8 +201,20 @@ export default function VehicleDetailScreen({ route, navigation }) {
             {renderStatus(vehicle.vehicleStatus)}
           </View>
 
-          {/* Nút ký hợp đồng */}
-          {vehicle.vehicleStatus === "Signing" && (
+          {/* Thông báo đã ký (ẩn nút ký nếu đã ký local) */}
+          {vehicle.vehicleStatus === "SigningContract" && hasSignedLocally && (
+            <View style={{ marginTop: 16, alignItems: "center" }}>
+              <Text style={{ color: COLORS.signingGreen, fontWeight: "bold", fontSize: 16 }}>
+                Đã ký hợp đồng thành công
+              </Text>
+              <Text style={{ color: COLORS.gray, marginTop: 4 }}>
+                Đang chờ staff duyệt cuối cùng
+              </Text>
+            </View>
+          )}
+
+          {/* Nút ký hợp đồng - chỉ hiện nếu chưa ký local */}
+          {vehicle.vehicleStatus === "SigningContract" && !hasSignedLocally && (
             <TouchableOpacity
               style={{
                 marginTop: 16,
@@ -210,8 +233,8 @@ export default function VehicleDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           )}
 
-          {/* Nút hủy xe - chỉ hiển thị khi xe ở trạng thái cho phép hủy */}
-          {["ReadyForInspection", "Signing", "Rejected", "PendingApproval"].includes(vehicle.vehicleStatus) && (
+          {/* Nút hủy xe */}
+          {["Pending", "ReadyForInspection", "SigningContract", "Rejected"].includes(vehicle.vehicleStatus) && (
             <TouchableOpacity
               style={{
                 marginTop: 12,

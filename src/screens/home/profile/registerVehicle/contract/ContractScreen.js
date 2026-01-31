@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 
+import AsyncStorage from '@react-native-async-storage/async-storage'; // ← Thêm import này
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -26,13 +27,12 @@ export default function ContractScreen() {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const { vehicleId } = route.params || {}; // Chỉ nhận vehicleId từ luồng mới
+  const { vehicleId } = route.params || {};
 
   const [contractId, setContractId] = useState(null);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Kiểm tra vehicleId ngay từ đầu
   if (!vehicleId) {
     return (
       <View style={styles.container}>
@@ -52,7 +52,7 @@ export default function ContractScreen() {
         contractType: 1,
         title: "Hợp đồng đăng ký xe",
         description: "Hợp đồng đăng ký xe cho phương tiện",
-        vehicleId, // Nếu backend cần liên kết với vehicleId
+        vehicleId,
       };
 
       const res = await createContract(payload);
@@ -137,6 +137,9 @@ export default function ContractScreen() {
 
       await verifyContractSignature(contractId, otp);
       console.log("✅ VERIFY CONTRACT SUCCESS");
+
+      // Lưu flag "đã ký hợp đồng cho xe này" vào AsyncStorage
+      await AsyncStorage.setItem(`signed_vehicle_${vehicleId}`, 'true');
 
       Alert.alert(
         "Thành công",
