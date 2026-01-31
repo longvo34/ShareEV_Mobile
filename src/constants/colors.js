@@ -5,6 +5,7 @@ const COLORS = {
   gray: "#999999",
   background: "#F7F7F7",
   text: "#111111",
+  signingGreen: "#33FF00",
 };
 
 export default COLORS;

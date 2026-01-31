@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
   FlatList,
+  RefreshControl,
   Text,
   TouchableOpacity,
   View,
@@ -16,6 +17,7 @@ import styles from "./RequestListScreen.styles";
 
 export default function RequestListScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [vehicles, setVehicles] = useState([]);
 
   useEffect(() => {
@@ -25,12 +27,8 @@ export default function RequestListScreen({ navigation }) {
   const fetchVehicles = async () => {
     try {
       setLoading(true);
-
-      // 1. lấy memberId từ token
       const memberRes = await getProfileMember();
       const memberId = memberRes.data.memberId;
-
-      // 2. lấy xe theo memberId
       const vehicleRes = await getVehiclesByMemberId(memberId);
 
       setVehicles(vehicleRes.data.data || vehicleRes.data || []);
@@ -39,37 +37,57 @@ export default function RequestListScreen({ navigation }) {
       setVehicles([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchVehicles();
+  };
 
   const renderStatus = (status) => {
     switch (status) {
-      case "PendingApproval":
-        return <Text style={[styles.status, styles.pending]}>Chờ duyệt</Text>;
+      case "ReadyForInspection":
+        return (
+          <Text style={[styles.status, { color: "#f59e0b", fontWeight: "600" }]}>
+            Chờ duyệt
+          </Text>
+        );
+      case "Signing":
+        return (
+          <Text style={[styles.status, { color: COLORS.signingGreen, fontWeight: "bold" }]}>
+            Sẵn sàng ký hợp đồng
+          </Text>
+        );
       case "Approved":
-        return <Text style={[styles.status, styles.approved]}>Đã duyệt</Text>;
+      case "SaleEligible":
+      case "Active":
+        return <Text style={[styles.status, styles.approved]}>Đã duyệt / Có thể bán</Text>;
       case "Rejected":
         return <Text style={[styles.status, styles.rejected]}>Từ chối</Text>;
+      case "Maintenance":
+        return <Text style={[styles.status, { color: "#d97706" }]}>Bảo dưỡng</Text>;
+      case "Decommissioned":
+        return <Text style={[styles.status, { color: "#6b7280" }]}>Ngừng hoạt động</Text>;
       default:
-        return null;
+        return <Text style={styles.status}>Không xác định ({status})</Text>;
     }
   };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() =>
+      onPress={() => {
+        // Luôn đi xem chi tiết xe (nơi có nút ký nếu Signing)
         navigation.navigate("RegisterVehicle", {
           screen: "VehicleDetail",
           params: {
             vehicleId: item.vehicleId,
           },
-        })
-      }
+        });
+      }}
     >
-
       <View style={styles.cardHeader}>
         <Text style={styles.carName}>
           {item.brandName} {item.modelName}
@@ -86,7 +104,6 @@ export default function RequestListScreen({ navigation }) {
       )}
     </TouchableOpacity>
   );
-
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
@@ -136,6 +153,9 @@ export default function RequestListScreen({ navigation }) {
           paddingBottom: 100,
         }}
         ListEmptyComponent={!loading && renderEmpty}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
       />
 
       {/* FLOAT BUTTON */}

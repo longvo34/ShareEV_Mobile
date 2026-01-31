@@ -59,3 +59,11 @@ export const createVehicleWithImages = async (data, images = []) => {
 export const getVehiclesByMemberId = (memberId) => {
   return api.get(`/vehicles/by-member/${memberId}`);
 };
+
+export const updateVehicle = (vehicleId, updateData) => {
+  return api.put(`/vehicles/${vehicleId}`, updateData);
+};
+
+export const deleteVehicle = (vehicleId) => {
+  return api.delete(`/vehicles/${vehicleId}`);
+};
