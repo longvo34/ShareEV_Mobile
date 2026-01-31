@@ -13,28 +13,57 @@ import EVLoading from "../../../../../components/animation/EVLoading";
 import COLORS from "../../../../../constants/colors";
 import { getProfileMember } from "../../../../../services/profile/profile.service";
 import { getVehiclesByMemberId } from "../../../../../services/vehicle/vehicle.service";
+import { getVehicleBrands } from "../../../../../services/vehicleBrand/vehicleBrand.service";
+import { getVehicleModels } from "../../../../../services/vehicleModel/vehicleModel.service";
 import styles from "./RequestListScreen.styles";
 
 export default function RequestListScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [vehicles, setVehicles] = useState([]);
+  const [brands, setBrands] = useState([]); 
+  const [models, setModels] = useState([]); 
 
   useEffect(() => {
-    fetchVehicles();
+    fetchInitialData();
   }, []);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchInitialData(); 
+    });
 
-  const fetchVehicles = async () => {
+    return unsubscribe; 
+  }, [navigation]);
+
+  const fetchInitialData = async () => {
     try {
       setLoading(true);
-      const memberRes = await getProfileMember();
+
+      const [brandRes, modelRes, memberRes] = await Promise.all([
+        getVehicleBrands(),
+        getVehicleModels(),
+        getProfileMember(),
+      ]);
+
+      const brandsData = Array.isArray(brandRes.data) 
+        ? brandRes.data 
+        : brandRes.data?.data || brandRes || [];
+      const modelsData = Array.isArray(modelRes.data) 
+        ? modelRes.data 
+        : modelRes.data?.data || modelRes || [];
+
+      setBrands(brandsData);
+      setModels(modelsData);
+
       const memberId = memberRes.data.memberId;
       const vehicleRes = await getVehiclesByMemberId(memberId);
 
       setVehicles(vehicleRes.data.data || vehicleRes.data || []);
     } catch (error) {
-      console.log("❌ GET VEHICLES ERROR:", error);
+      console.log("❌ FETCH ERROR:", error);
       setVehicles([]);
+      setBrands([]);
+      setModels([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -43,41 +72,49 @@ export default function RequestListScreen({ navigation }) {
 
   const onRefresh = () => {
     setRefreshing(true);
-    fetchVehicles();
+    fetchInitialData();
+  };
+
+
+  const getVehicleName = (modelId) => {
+    const model = models.find((m) => m.vehicleModelId === modelId);
+    if (!model) return "Xe không xác định";
+
+    const brand = brands.find((b) => b.vehicleBrandId === model.vehicleBrand.vehicleBrandId);
+    const brandName = brand ? brand.name : "";
+
+    return `${brandName} ${model.name}`.trim() || "Xe không xác định";
   };
 
   const renderStatus = (status) => {
-  switch (status) {
-    case "Pending":
-      return <Text style={{ color: "#d97706", fontWeight: "600" }}>Chờ duyệt</Text>;
+    switch (status) {
+      case "Pending":
+        return <Text style={{ color: "#d97706", fontWeight: "600" }}>Chờ duyệt</Text>;
 
-    case "ReadyForInspection":
-      return <Text style={{ color: "#f59e0b", fontWeight: "600" }}>Sẵn sàng kiểm tra tại station</Text>;
+      case "ReadyForInspection":
+        return <Text style={{ color: "#f59e0b", fontWeight: "600" }}>Sẵn sàng kiểm tra tại station</Text>;
 
-    case "Inspecting":
-      return <Text style={{ color: "#8b5cf6", fontWeight: "600" }}>Đang kiểm tra tại station</Text>;
+      case "Inspecting":
+        return <Text style={{ color: "#8b5cf6", fontWeight: "600" }}>Đang kiểm tra tại station</Text>;
 
-    case "SigningContract":
-      return <Text style={{ color: "#2563eb", fontWeight: "bold" }}>Sẵn sàng ký hợp đồng</Text>;
+      case "SigningContract":
+        return <Text style={{ color: "#2563eb", fontWeight: "bold" }}>Sẵn sàng ký hợp đồng</Text>;
 
-    case "SaleEligible":
-      return <Text style={{ color: COLORS.signingGreen, fontWeight: "bold" }}>Đã duyệt / Có thể bán</Text>;
+      case "SaleEligible":
+        return <Text style={{ color: COLORS.signingGreen, fontWeight: "bold" }}>Đã duyệt / Có thể bán</Text>;
 
-    case "Rejected":
-      return <Text style={{ color: "#ef4444", fontWeight: "bold" }}>Từ chối</Text>;
+      case "Rejected":
+        return <Text style={{ color: "#ef4444", fontWeight: "bold" }}>Từ chối</Text>;
 
-
-    default:
-      return <Text style={{ color: COLORS.gray }}>Không xác định ({status})</Text>;
-  }
-};
-     
+      default:
+        return <Text style={{ color: COLORS.gray }}>Không xác định ({status})</Text>;
+    }
+  };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() => {
-        // Luôn đi xem chi tiết xe (nơi có nút ký nếu Signing)
         navigation.navigate("RegisterVehicle", {
           screen: "VehicleDetail",
           params: {
@@ -88,7 +125,7 @@ export default function RequestListScreen({ navigation }) {
     >
       <View style={styles.cardHeader}>
         <Text style={styles.carName}>
-          {item.brandName} {item.modelName}
+          {getVehicleName(item.vehicleModelId)}
         </Text>
         {renderStatus(item.vehicleStatus)}
       </View>

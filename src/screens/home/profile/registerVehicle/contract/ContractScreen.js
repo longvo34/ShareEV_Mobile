@@ -10,7 +10,7 @@ import {
   View,
 } from "react-native";
 
-import AsyncStorage from '@react-native-async-storage/async-storage'; // ← Thêm import này
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -18,8 +18,9 @@ import COLORS from "../../../../../constants/colors";
 import {
   createContract,
   sendContractVerification,
-  verifyContractSignature,
+  verifyContractSignature
 } from "../../../../../services/contract/contract.service";
+import { updateVehicleStatus } from "../../../../../services/vehicle/vehicle.service";
 import { getAccessToken } from "../../../../../utils/authStorage";
 import styles from "./ContractScreen.styles";
 
@@ -138,7 +139,8 @@ export default function ContractScreen() {
       await verifyContractSignature(contractId, otp);
       console.log("✅ VERIFY CONTRACT SUCCESS");
 
-      // Lưu flag "đã ký hợp đồng cho xe này" vào AsyncStorage
+      await updateVehicleStatus(vehicleId, "SaleEligible");
+
       await AsyncStorage.setItem(`signed_vehicle_${vehicleId}`, 'true');
 
       Alert.alert(

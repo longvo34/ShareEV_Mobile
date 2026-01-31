@@ -12,10 +12,16 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import AsyncStorage from '@react-native-async-storage/async-storage'; // ← Thêm import này
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from "expo-constants";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import EVLoading from "../../../../../components/animation/EVLoading";
 import COLORS from "../../../../../constants/colors";
+import { getContractsByMember } from "../../../../../services/contract/contract.service";
+import { getProfileMember } from "../../../../../services/profile/profile.service";
 import { deleteVehicle, getVehicleById } from "../../../../../services/vehicle/vehicle.service";
+import { getAccessToken } from "../../../../../utils/authStorage";
 import styles from "./VehicleDetailScreen.styles";
 
 export default function VehicleDetailScreen({ route, navigation }) {
@@ -23,7 +29,7 @@ export default function VehicleDetailScreen({ route, navigation }) {
 
   const [loading, setLoading] = useState(true);
   const [vehicle, setVehicle] = useState(null);
-  const [hasSignedLocally, setHasSignedLocally] = useState(false); // ← Thêm state check flag
+  const [hasSignedLocally, setHasSignedLocally] = useState(false); 
 
   const flatListRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -33,7 +39,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
     fetchVehicleDetail();
   }, []);
 
-  // Check flag "đã ký" từ AsyncStorage
   useEffect(() => {
     const checkSigned = async () => {
       const signed = await AsyncStorage.getItem(`signed_vehicle_${vehicleId}`);
@@ -55,7 +60,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
     }
   };
 
-  // Auto-scroll carousel ảnh
   useEffect(() => {
     if (!vehicle?.images?.length) return;
 
@@ -129,6 +133,65 @@ export default function VehicleDetailScreen({ route, navigation }) {
     );
   }
 
+  const downloadContractPdf = async () => {
+  try {
+    setLoading(true);
+
+    // 1. Lấy memberId
+    const memberRes = await getProfileMember();
+    const memberId = memberRes.data.memberId;
+
+    // 2. Lấy danh sách contract của member
+    const contractRes = await getContractsByMember(memberId);
+    const contracts = contractRes.data.data || [];
+
+    // 3. Lấy contract đăng ký xe đã hoàn tất
+    const vehicleContract = contracts.find(
+      c =>
+        c.contractType === "VehicleRegistration" &&
+        c.contractStatuses === "Completed"
+    );
+
+    if (!vehicleContract) {
+      Alert.alert("Không tìm thấy hợp đồng");
+      return;
+    }
+
+    const contractId = vehicleContract.contractId;
+
+    // 4. Tải PDF
+    const token = await getAccessToken();
+    const API_URL = Constants.expoConfig.extra.API_URL;
+    const fileName = `Hop-dong-${contractId}.pdf`;
+    const fileUri = FileSystem.documentDirectory + fileName;
+
+    const downloadUrl = `${API_URL}/contracts/${contractId}/pdf`;
+
+    const { uri } = await FileSystem.downloadAsync(downloadUrl, fileUri, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!(await Sharing.isAvailableAsync())) {
+      Alert.alert("Không hỗ trợ", "Thiết bị không hỗ trợ mở file PDF");
+      return;
+    }
+
+    await Sharing.shareAsync(uri, {
+      mimeType: "application/pdf",
+      dialogTitle: "Xem / Tải hợp đồng",
+      UTI: "com.adobe.pdf",
+    });
+  } catch (e) {
+    console.error("❌ DOWNLOAD CONTRACT ERROR:", e);
+    Alert.alert("Lỗi", "Không thể tải hợp đồng");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -140,7 +203,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Carousel ảnh */}
         {vehicle.images?.length > 0 ? (
           <>
             <FlatList
@@ -190,7 +252,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Card tên xe + trạng thái */}
         <View style={styles.card}>
           <Text style={styles.title}>
             {vehicle.vehicleModel?.brandName} {vehicle.vehicleModel?.name}
@@ -201,7 +262,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
             {renderStatus(vehicle.vehicleStatus)}
           </View>
 
-          {/* Thông báo đã ký (ẩn nút ký nếu đã ký local) */}
           {vehicle.vehicleStatus === "SigningContract" && hasSignedLocally && (
             <View style={{ marginTop: 16, alignItems: "center" }}>
               <Text style={{ color: COLORS.signingGreen, fontWeight: "bold", fontSize: 16 }}>
@@ -213,7 +273,24 @@ export default function VehicleDetailScreen({ route, navigation }) {
             </View>
           )}
 
-          {/* Nút ký hợp đồng - chỉ hiện nếu chưa ký local */}
+          {vehicle.vehicleStatus === "SaleEligible" && (
+  <TouchableOpacity
+    style={{
+      marginTop: 16,
+      backgroundColor: COLORS.signingGreen,
+      paddingVertical: 12,
+      borderRadius: 8,
+      alignItems: "center",
+    }}
+    onPress={downloadContractPdf}
+  >
+    <Text style={{ color: "white", fontWeight: "bold", fontSize: 16 }}>
+      📄 Xem / Tải hợp đồng
+    </Text>
+  </TouchableOpacity>
+)}
+
+
           {vehicle.vehicleStatus === "SigningContract" && !hasSignedLocally && (
             <TouchableOpacity
               style={{
@@ -233,7 +310,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           )}
 
-          {/* Nút hủy xe */}
           {["Pending", "ReadyForInspection", "SigningContract", "Rejected"].includes(vehicle.vehicleStatus) && (
             <TouchableOpacity
               style={{
@@ -249,7 +325,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
             </TouchableOpacity>
           )}
 
-          {/* Hint khi ReadyForInspection */}
           {vehicle.vehicleStatus === "ReadyForInspection" && (
             <Text style={{ marginTop: 12, color: "#f59e0b", fontStyle: "italic" }}>
               Vui lòng đem xe ra station gần nhất để kiểm tra và duyệt.
@@ -257,7 +332,6 @@ export default function VehicleDetailScreen({ route, navigation }) {
           )}
         </View>
 
-        {/* Thông tin chi tiết */}
         <View style={styles.card}>
           <DetailRow label="Biển số" value={vehicle.licensePlate} />
           <DetailRow label="Màu sắc" value={vehicle.color} />

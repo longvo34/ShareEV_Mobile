@@ -19,3 +19,7 @@ export const verifyContractSignature = (contractId, otp) => {
     otp,
   });
 };
+
+export const getContractsByMember = (memberId) => {
+  return api.get(`/contracts/member/${memberId}`);
+};
